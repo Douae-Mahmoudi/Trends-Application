@@ -1,0 +1,43 @@
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+  <div class="github-container">
+    <div class="header">
+      <h2 class="title">Sujets Tendance sur GitHub</h2>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="search-container">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="filterTopics()"
+          placeholder="Rechercher un dépôt ou un propriétaire..."
+          class="search-bar"
+        />
+      </div>
+
+      <div class="topics-list">
+        <div *ngIf="filteredTopics.length === 0" class="no-results">
+          Aucun sujet ne correspond à votre recherche.
+        </div>
+        <div *ngFor="let topic of filteredTopics" class="topic-card">
+          <div class="topic-header">
+            <h3 class="topic-title" (click)="openModal(topic)">{{ topic.full_name }}</h3>
+            <button class="favorite-button" (click)="toggleFavorite(topic)">
+              <span *ngIf="topic.isFavorite">❤️</span>
+              <span *ngIf="!topic.isFavorite">🤍</span>
+            </button>
+          </div>
+          <p class="topic-description">{{ topic.description }}</p>
+          <div class="topic-meta">
+            <span class="topic-owner">Par: {{ topic.owner }}</span>
+            <span class="topic-stars">⭐ {{ topic.stars | number }}</span>
+          </div>
+          <a [href]="topic.url" target="_blank" class="topic-link">Voir sur GitHub</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-modal *ngIf="showModal && selectedTopic" [topic]="selectedTopic" (close)="closeModal()"></app-modal>
+</div>

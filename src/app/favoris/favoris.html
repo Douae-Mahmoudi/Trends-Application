@@ -1,0 +1,28 @@
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+  <div class="favorites-container">
+    <div class="header">
+      <h2 class="title">Mes Favoris ❤️</h2>
+    </div>
+
+    <div class="content-wrapper">
+      <div *ngIf="favorites.length === 0" class="no-favorites">
+        Vous n'avez pas encore de favoris.
+      </div>
+
+      <div class="favorites-list">
+        <div *ngFor="let item of favorites" class="favorite-card">
+          <div class="card-header">
+            <h3>{{ item.data.title || item.data.full_name || (item.data.home_team + ' vs ' + item.data.away_team) }}</h3>
+            <span class="type-badge">{{ item.type | uppercase }}</span>
+          </div>
+          <p class="card-info" *ngIf="item.data.source">Source: {{ item.data.source }}</p>
+          <p class="card-info" *ngIf="item.data.channel">Chaîne: {{ item.data.channel }}</p>
+          <p class="card-info" *ngIf="item.data.competition">Compétition: {{ item.data.competition }}</p>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
