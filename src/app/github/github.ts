@@ -1,9 +1,12 @@
+// src/app/github/github.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { Modal } from '../modal/modal';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
+
 interface TrendingTopic {
   category: string;
   created_at: string;
@@ -24,53 +27,7 @@ interface TrendingTopic {
   styleUrls: ['./github.css']
 })
 export class Github implements OnInit {
-  private allTopics: TrendingTopic[] = [
-    {
-      category: "trending_python",
-      created_at: "2025-09-04T14:37:36Z",
-      description: "MapAnything: Universal Feed-Forward Metric 3D Reconstruction",
-      full_name: "facebookresearch/map-anything",
-      url: "https://github.com/facebookresearch/map-anything",
-      owner: "facebookresearch",
-      stars: 1064,
-      watchers: 1064,
-      isFavorite: false
-    },
-    {
-      category: "trending_javascript",
-      created_at: "2025-09-03T10:20:00Z",
-      description: "A fast and lightweight JavaScript framework.",
-      full_name: "vuejs/vue",
-      url: "https://github.com/vuejs/vue",
-      owner: "vuejs",
-      stars: 350000,
-      watchers: 350000,
-      isFavorite: false
-    },
-    {
-      category: "trending_java",
-      created_at: "2025-09-02T08:00:00Z",
-      description: "An open-source Java framework for building robust applications.",
-      full_name: "spring-projects/spring-boot",
-      url: "https://github.com/spring-projects/spring-boot",
-      owner: "spring-projects",
-      stars: 65000,
-      watchers: 65000,
-      isFavorite: false
-    },
-    {
-      category: "trending_typescript",
-      created_at: "2025-09-01T12:45:00Z",
-      description: "TypeORM is a powerful ORM for TypeScript and JavaScript.",
-      full_name: "typeorm/typeorm",
-      url: "https://github.com/typeorm/typeorm",
-      owner: "typeorm",
-      stars: 30000,
-      watchers: 30000,
-      isFavorite: false
-    }
-  ];
-
+  allTopics: TrendingTopic[] = [];
   filteredTopics: TrendingTopic[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
@@ -79,10 +36,30 @@ export class Github implements OnInit {
   constructor(private favoriteService: FavoriteService) {}
 
   ngOnInit(): void {
-    this.allTopics.forEach(topic => {
-      topic.isFavorite = this.favoriteService.isFavorite(topic.full_name);
-    });
-    this.filteredTopics = this.allTopics;
+    this.fetchGithubTrends();
+  }
+
+  // 🔥 Récupère les tendances GitHub depuis le backend Flask
+  fetchGithubTrends(): void {
+    fetch('http://127.0.0.1:5000/api/github')
+      .then(response => response.json())
+      .then((data: any[]) => {
+        this.allTopics = data.map(topic => ({
+          category: topic.category,
+          created_at: topic.created_at,
+          description: topic.description,
+          full_name: topic.full_name,
+          url: topic.url,
+          owner: topic.owner,
+          stars: topic.stars,
+          watchers: topic.watchers,
+          isFavorite: this.favoriteService.isFavorite(topic.full_name)
+        }));
+        this.filteredTopics = this.allTopics;
+      })
+      .catch(error => {
+        console.error('Erreur lors du chargement des tendances GitHub:', error);
+      });
   }
 
   filterTopics(): void {

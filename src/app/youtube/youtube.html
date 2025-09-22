@@ -14,15 +14,19 @@
           placeholder="Rechercher par titre ou chaîne..."
           class="search-bar"
         />
+
       </div>
 
       <div class="videos-list">
         <div *ngIf="filteredVideos.length === 0" class="no-results">
           Aucune vidéo ne correspond à votre recherche.
         </div>
+
         <div *ngFor="let video of filteredVideos" class="video-card">
           <div class="video-header">
-            <h3 class="video-title" (click)="openModal(video)">{{ video.title }}</h3>
+            <h3 class="video-title" (click)="openModal(video)">
+              {{ video.title }}
+            </h3>
             <button class="favorite-button" (click)="toggleFavorite(video)">
               <span *ngIf="video.isFavorite">❤️</span>
               <span *ngIf="!video.isFavorite">🤍</span>
@@ -36,6 +40,7 @@
     </div>
   </div>
 
+  <!-- Modal -->
   <div *ngIf="showModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">

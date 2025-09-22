@@ -1,5 +1,4 @@
 // src/app/football/football.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,39 +24,7 @@ interface FootballMatch {
   styleUrls: ['./football.css']
 })
 export class Football implements OnInit {
-  private allMatches: FootballMatch[] = [
-    {
-      away_team: "Estudiantes de La Plata",
-      category: "sports",
-      competition: "Copa Libertadores",
-      date: "2025-09-19T00:30:00Z",
-      home_team: "CR Flamengo",
-      score: "2-0",
-      status: "IN_PLAY",
-      isFavorite: false
-    },
-    {
-      away_team: "Manchester United",
-      category: "sports",
-      competition: "Premier League",
-      date: "2025-09-19T14:00:00Z",
-      home_team: "Liverpool",
-      score: "1-1",
-      status: "FINISHED",
-      isFavorite: false
-    },
-    {
-      away_team: "Real Madrid",
-      category: "sports",
-      competition: "La Liga",
-      date: "2025-09-19T18:30:00Z",
-      home_team: "FC Barcelona",
-      score: "0-0",
-      status: "SCHEDULED",
-      isFavorite: false
-    }
-  ];
-
+  allMatches: FootballMatch[] = [];
   filteredMatches: FootballMatch[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
@@ -66,14 +33,38 @@ export class Football implements OnInit {
   constructor(private favoriteService: FavoriteService) {}
 
   ngOnInit(): void {
-    this.allMatches.forEach(match => {
-      const id = this.generateMatchId(match);
-      match.isFavorite = this.favoriteService.isFavorite(id);
-    });
-    // On garde tous les matchs, on ne filtre pas au départ
-    this.filteredMatches = this.allMatches;
+    this.fetchMatches();
   }
 
+  // 🔥 Récupération des matchs depuis ton backend Flask
+  fetchMatches(): void {
+    fetch('http://127.0.0.1:5000/api/sports') // ✅ adapte l’URL à ton API
+      .then(res => res.json())
+      .then((data: any) => {
+        console.log("Données reçues du backend:", data);
+
+        const matches = Array.isArray(data) ? data : data.all_matches;
+
+        this.allMatches = matches.map((match: any) => {
+          const formatted: FootballMatch = {
+            away_team: match.away_team,
+            category: match.category ?? "sports",
+            competition: match.competition,
+            date: match.date,
+            home_team: match.home_team,
+            score: match.score,
+            status: match.status,
+            isFavorite: this.favoriteService.isFavorite(this.generateMatchId(match))
+          };
+          return formatted;
+        });
+
+        this.filteredMatches = this.allMatches;
+      })
+      .catch(err => console.error("Erreur chargement des matchs:", err));
+  }
+
+  // 🔍 Recherche
   filterMatches(): void {
     if (this.searchTerm.trim() === '') {
       this.filteredMatches = this.allMatches;
@@ -86,6 +77,7 @@ export class Football implements OnInit {
     }
   }
 
+  // 📌 Modal
   openModal(match: FootballMatch): void {
     this.selectedMatch = match;
     this.showModal = true;
@@ -96,6 +88,7 @@ export class Football implements OnInit {
     this.selectedMatch = null;
   }
 
+  // ⭐ Favoris
   toggleFavorite(match: FootballMatch): void {
     const id = this.generateMatchId(match);
     if (this.favoriteService.isFavorite(id)) {
@@ -112,6 +105,6 @@ export class Football implements OnInit {
   }
 
   private generateMatchId(match: FootballMatch): string {
-    return `football-${match.home_team}-${match.away_team}`;
+    return `football-${match.home_team}-${match.away_team}-${match.date}`;
   }
 }

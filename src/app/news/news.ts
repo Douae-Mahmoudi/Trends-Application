@@ -1,9 +1,10 @@
-
+// src/app/news/news.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
+
 interface NewsArticle {
   author: string;
   category: string;
@@ -21,54 +22,40 @@ interface NewsArticle {
   styleUrls: ['./news.css']
 })
 export class News implements OnInit {
-  private allArticles: NewsArticle[] = [
-    {
-      author: "speckx",
-      category: "tech_news",
-      source: "Hacker News",
-      title: "I regret building this $3000 Pi AI cluster",
-      url: "https://www.jeffgeerling.com/blog/2025/i-regret-building-3000-pi-ai-cluster",
-      isFavorite: false
-    },
-    {
-      author: "Jane Doe",
-      category: "business_news",
-      source: "Business Insider",
-      title: "The rise of remote work and its impact on real estate",
-      url: "https://www.businessinsider.com/remote-work-real-estate-impact",
-      isFavorite: false
-    },
-    {
-      author: "John Smith",
-      category: "science_news",
-      source: "NASA",
-      title: "New discovery of a habitable exoplanet",
-      url: "https://www.nasa.gov/exoplanet-discovery",
-      isFavorite: false
-    },
-    {
-      author: "Emily White",
-      category: "tech_news",
-      source: "Wired",
-      title: "The future of quantum computing",
-      url: "https://www.wired.com/quantum-computing-future",
-      isFavorite: false
-    }
-  ];
-
+  allArticles: NewsArticle[] = [];
   filteredArticles: NewsArticle[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
   selectedArticle: NewsArticle | null = null;
 
-  // Injection du service de favoris dans le constructeur
   constructor(private favoriteService: FavoriteService) {}
 
   ngOnInit(): void {
-    this.allArticles.forEach(article => {
-      article.isFavorite = this.favoriteService.isFavorite(article.url);
-    });
-    this.filteredArticles = this.allArticles;
+    this.fetchArticles();
+  }
+
+  // 🔥 Récupération des articles depuis ton backend Flask
+  fetchArticles(): void {
+    fetch('http://127.0.0.1:5000/api/news') // ✅ adapte l’URL selon ton API
+      .then(res => res.json())
+      .then((data: any) => {
+        console.log("Données reçues du backend (news):", data);
+
+        // Si ton backend renvoie { all_articles: [...] }
+        const articles = Array.isArray(data) ? data : data.all_articles;
+
+        this.allArticles = articles.map((article: any) => ({
+          author: article.author || "Inconnu",
+          category: article.category || "general_news",
+          source: article.source || "Unknown",
+          title: article.title,
+          url: article.url,
+          isFavorite: this.favoriteService.isFavorite(article.url)
+        }));
+
+        this.filteredArticles = this.allArticles;
+      })
+      .catch(err => console.error("Erreur lors du chargement des articles:", err));
   }
 
   filterArticles(): void {
