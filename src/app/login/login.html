@@ -4,11 +4,23 @@
       <h1>Bienvenue à Trendify !</h1>
     </div>
 
-    <div *ngIf="isLoginMode">
+    <!-- Message Box for Feedback -->
+    <!-- ANCIEN : @if (message()) { -->
+    <!-- NOUVEAU : On appelle le signal 'message()' -->
+    @if (message()) {
+      <div class="message-box" [class.success]="isSuccess()" [class.error]="!isSuccess()">
+        {{ message() }}
+      </div>
+    }
+
+    <!-- Section Connexion -->
+    <!-- ANCIEN : @if (isLoginMode) { -->
+    <!-- NOUVEAU : On appelle le signal 'isLoginMode()' -->
+    @if (isLoginMode()) {
       <form (ngSubmit)="onLogin()">
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" [(ngModel)]="loginForm.email" name="email"  required>
+          <input type="email" id="email" [(ngModel)]="loginForm.email" name="email" required>
         </div>
         <div class="form-group">
           <label for="password">Mot de passe</label>
@@ -36,9 +48,8 @@
         Vous n'avez pas de compte ?
         <a (click)="toggleMode()">S'inscrire</a>
       </p>
-    </div>
-
-    <div *ngIf="!isLoginMode">
+    } @else {
+      <!-- Section Inscription -->
       <form (ngSubmit)="onRegister()">
         <div class="form-group">
           <label for="name">Nom complet </label>
@@ -74,6 +85,6 @@
         Vous avez déjà un compte ?
         <a (click)="toggleMode()">Se connecter</a>
       </p>
-    </div>
+    }
   </div>
 </div>

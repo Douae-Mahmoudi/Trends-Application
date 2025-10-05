@@ -18,7 +18,8 @@
 
       <div class="posts-list">
         <div *ngIf="filteredPosts.length === 0" class="no-results">
-          Aucun post ne correspond à votre recherche.
+          loading...
+
         </div>
         <div *ngFor="let post of filteredPosts" class="post-card">
           <div class="post-header">

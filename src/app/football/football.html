@@ -18,7 +18,8 @@
 
       <div class="matches-list">
         <div *ngIf="filteredMatches.length === 0" class="no-results">
-          Aucun match ne correspond à votre recherche.
+          loading...
+
         </div>
         <div *ngFor="let match of filteredMatches" class="match-card">
           <div class="match-card-header">

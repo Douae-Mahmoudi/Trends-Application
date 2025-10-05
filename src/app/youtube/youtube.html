@@ -19,7 +19,7 @@
 
       <div class="videos-list">
         <div *ngIf="filteredVideos.length === 0" class="no-results">
-          Aucune vidéo ne correspond à votre recherche.
+          loading...
         </div>
 
         <div *ngFor="let video of filteredVideos" class="video-card">

@@ -6,21 +6,31 @@
     </div>
 
     <div class="content-wrapper">
-      <div *ngIf="favorites.length === 0" class="no-favorites">
+      <div *ngIf="isLoading" class="no-favorites">
+        Chargement de vos favoris...
+      </div>
+      <div *ngIf="errorMessage" class="no-favorites" style="color: #e74c3c;">
+        Erreur: {{ errorMessage }}
+      </div>
+
+      <div *ngIf="!isLoading && favorites.length === 0" class="no-favorites">
         Vous n'avez pas encore de favoris.
       </div>
 
       <div class="favorites-list">
         <div *ngFor="let item of favorites" class="favorite-card">
           <div class="card-header">
-            <h3>{{ item.data.title || item.data.full_name || (item.data.home_team + ' vs ' + item.data.away_team) }}</h3>
-            <span class="type-badge">{{ item.type | uppercase }}</span>
+            <h3>{{ item.title }}</h3>
+            <span class="type-badge">{{ item.category || 'GÉNÉRAL' | uppercase }}</span>
           </div>
-          <p class="card-info" *ngIf="item.data.source">Source: {{ item.data.source }}</p>
-          <p class="card-info" *ngIf="item.data.channel">Chaîne: {{ item.data.channel }}</p>
-          <p class="card-info" *ngIf="item.data.competition">Compétition: {{ item.data.competition }}</p>
 
+          <p class="card-info" *ngIf="item.source">Source: {{ item.source }}</p>
+          <p class="card-info" *ngIf="item.category">Catégorie: {{ item.category }}</p>
+          <p class="card-info">Ajouté le: {{ item.added_at | date: 'mediumDate' }}</p>
 
+          <button class="remove-button" (click)="removeFromFavorites(item.id)">
+            Supprimer
+          </button>
         </div>
       </div>
     </div>

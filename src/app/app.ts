@@ -1,18 +1,17 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { BaseChartDirective } from 'ng2-charts';
 import { Dashboard} from './dashboard/dashboard';
 import { Sidebar } from './sidebar/sidebar';
 import { ApiDataService } from './services/api-data.service';
+import { NgChartsModule } from 'ng2-charts';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     RouterOutlet,
-    BaseChartDirective,
-    Dashboard,
-    Sidebar
+    NgChartsModule, // <-- This is the corrected import
+
   ],
   providers: [ApiDataService],
   templateUrl: './app.html',

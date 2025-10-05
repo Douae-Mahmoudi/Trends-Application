@@ -8,8 +8,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 interface TrendingPost {
   author: string;
   title: string;
-  url: string;
+  url: string; // Utilisé comme identifiant unique
   isFavorite: boolean;
+  favoriteId: number | null; // 👈 ID du favori dans la base de données (pour suppression)
 }
 
 @Component({
@@ -19,17 +20,18 @@ interface TrendingPost {
     CommonModule,
     FormsModule,
     Sidebar,
-    HttpClientModule   // ✅ Ajout obligatoire pour HttpClient
+    HttpClientModule
   ],
   templateUrl: './reddit.html',
   styleUrls: ['./reddit.css']
 })
 export class Reddit implements OnInit {
-  allPosts: TrendingPost[] = [];  // Initialement vide, rempli depuis backend
+  allPosts: TrendingPost[] = [];
   filteredPosts: TrendingPost[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
   selectedPost: TrendingPost | null = null;
+  private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
 
   constructor(
     private favoriteService: FavoriteService,
@@ -37,7 +39,37 @@ export class Reddit implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.fetchRedditTrends();
+    // 1. Charger les favoris actuels avant de charger les posts
+    this.loadCurrentFavorites().then(() => {
+      this.fetchRedditTrends();
+    });
+  }
+
+  // 1. Chargement asynchrone des favoris depuis le backend
+  async loadCurrentFavorites(): Promise<void> {
+    return new Promise((resolve) => {
+      this.favoriteService.getFavorites().subscribe({
+        next: (data) => {
+          this.currentFavorites = data;
+          resolve();
+        },
+        error: (err) => {
+          console.error("Erreur de chargement des favoris:", err);
+          resolve();
+        }
+      });
+    });
+  }
+
+  // 2. Vérification de l'état "Favori" pour un post
+  private checkIfFavorite(post: any): { isFavorite: boolean, favoriteId: number | null } {
+    // On utilise l'URL, qui est le champ 'url' dans la table 'favorites' du backend
+    const favorite = this.currentFavorites.find(fav => fav.url === post.url);
+
+    return {
+      isFavorite: !!favorite,
+      favoriteId: favorite ? favorite.id : null
+    };
   }
 
   // 🔹 Récupération des tendances Reddit depuis le backend Flask
@@ -50,7 +82,8 @@ export class Reddit implements OnInit {
             author: post.author,
             title: post.title,
             url: post.url,
-            isFavorite: this.favoriteService.isFavorite(post.url)
+            // 👈 Utiliser la fonction de vérification
+            ...this.checkIfFavorite(post)
           }));
           this.filteredPosts = this.allPosts;
         },
@@ -60,7 +93,7 @@ export class Reddit implements OnInit {
       );
   }
 
-  // 🔹 Filtrer les posts selon le texte saisi
+  // 🔹 Filtrer les posts selon le texte saisi (inchangé)
   filterPosts(): void {
     if (this.searchTerm.trim() === '') {
       this.filteredPosts = this.allPosts;
@@ -73,31 +106,61 @@ export class Reddit implements OnInit {
     }
   }
 
-  // 🔹 Ouvrir la fenêtre modale
+  // 🔹 Ouvrir la fenêtre modale (inchangé)
   openModal(post: TrendingPost): void {
     this.selectedPost = post;
     this.showModal = true;
   }
 
-  // 🔹 Fermer la fenêtre modale
+  // 🔹 Fermer la fenêtre modale (inchangé)
   closeModal(): void {
     this.showModal = false;
     this.selectedPost = null;
   }
 
-  // 🔹 Gérer les favoris
+  // ⭐ Logique de favori mise à jour (asynchrone)
   toggleFavorite(post: TrendingPost): void {
-    const id = post.url;
-    if (this.favoriteService.isFavorite(id)) {
-      this.favoriteService.removeFavorite(id);
+    post.isFavorite = !post.isFavorite; // Mise à jour optimiste
+
+    if (!post.isFavorite) {
+      // Suppression du favori
+      if (post.favoriteId !== null) {
+        this.favoriteService.removeFavorite(post.favoriteId).subscribe({
+          next: () => {
+            post.favoriteId = null; // Supprime l'ID local
+          },
+          error: (err) => {
+            console.error('Erreur de suppression:', err);
+            post.isFavorite = true; // Rollback
+            alert(`Erreur de suppression: ${err.message}`);
+          }
+        });
+      } else {
+        console.warn("Impossible de supprimer le favori car l'ID BDD est manquant.");
+      }
+
     } else {
-      const favoriteItem: FavoriteItem = {
-        id: id,
-        type: 'reddit',
-        data: post
-      };
-      this.favoriteService.addFavorite(favoriteItem);
+      // Ajout du favori
+      const title = post.title;
+      const url = post.url;
+      const category = 'reddit';
+      const source = post.author;
+
+      this.favoriteService.addFavorite(title, url, category, source).subscribe({
+        next: (response) => {
+          // L'ajout a réussi, on recharge les favoris pour récupérer l'ID généré
+          this.loadCurrentFavorites().then(() => {
+            // Mettre à jour l'état du post pour obtenir le nouvel ID
+            const updatedState = this.checkIfFavorite(post);
+            post.favoriteId = updatedState.favoriteId;
+          });
+        },
+        error: (err) => {
+          console.error('Erreur d\'ajout:', err);
+          post.isFavorite = false; // Rollback
+          alert(`Erreur d'ajout aux favoris: ${err.message}`);
+        }
+      });
     }
-    post.isFavorite = this.favoriteService.isFavorite(id);
   }
 }

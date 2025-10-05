@@ -4,7 +4,7 @@
   align-items: center;
   height: 100vh;
   background-color: #f0f2f5;
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', sans-serif;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -18,8 +18,8 @@
 
 .form-card {
   background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   padding: 40px;
   width: 100%;
   max-width: 450px;
@@ -32,9 +32,10 @@
 }
 
 .welcome-section h1 {
-  font-size: 2em;
+  font-size: 2.2em;
   margin-bottom: 5px;
-  color: #333;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .form-group {
@@ -44,17 +45,25 @@
 
 .form-group label {
   display: block;
-  font-weight: bold;
+  font-weight: 500;
   margin-bottom: 8px;
-  color: #555;
+  color: #444;
+  font-size: 0.95em;
 }
 
 .form-group input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  outline: none;
 }
 
 .auth-button {
@@ -66,11 +75,14 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 1.1em;
-  transition: background-color 0.3s;
+  font-weight: 600;
+  transition: background-color 0.3s, transform 0.1s;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
 }
 
 .auth-button:hover {
   background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
 .separator {
@@ -79,13 +91,14 @@
   text-align: center;
   margin: 25px 0;
   color: #aaa;
+  font-size: 0.9em;
 }
 
 .separator::before,
 .separator::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .separator:not(:empty)::before {
@@ -99,7 +112,7 @@
 .social-login {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .social-button {
@@ -114,11 +127,12 @@
   cursor: pointer;
   font-size: 1em;
   transition: background-color 0.3s, box-shadow 0.3s;
+  font-weight: 500;
 }
 
 .social-button:hover {
-  background-color: #f5f5f5;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  background-color: #f7f7f7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .social-button img {
@@ -131,6 +145,7 @@
   text-align: center;
   margin-top: 25px;
   font-size: 0.9em;
+  color: #666;
 }
 
 .toggle-mode a {
@@ -138,10 +153,38 @@
   text-decoration: none;
   font-weight: bold;
   cursor: pointer;
+  transition: color 0.3s;
 }
 
 .toggle-mode a:hover {
-  text-decoration: underline;
+  color: #0056b3;
+}
+
+.message-box {
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  opacity: 0.95;
+  animation: fade-in 0.3s ease-out;
+}
+
+.message-box.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message-box.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 0.95; transform: translateY(0); }
 }
 
 @media (max-width: 500px) {

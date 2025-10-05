@@ -18,7 +18,8 @@
 
       <div class="articles-list">
         <div *ngIf="filteredArticles.length === 0" class="no-results">
-          Aucun article ne correspond à votre recherche.
+          loading...
+
         </div>
         <div *ngFor="let article of filteredArticles" class="article-card">
           <div class="article-header">

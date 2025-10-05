@@ -18,7 +18,8 @@
 
       <div class="topics-list">
         <div *ngIf="filteredTopics.length === 0" class="no-results">
-          Aucun sujet ne correspond à votre recherche.
+          loading...
+
         </div>
         <div *ngFor="let topic of filteredTopics" class="topic-card">
           <div class="topic-header">
