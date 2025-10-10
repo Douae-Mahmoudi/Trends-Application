@@ -1,99 +1,102 @@
+/* Structure générale */
 .main-layout {
   display: flex;
-  min-height: 100vh;
-  background-color: var(--background-color);
+  background-color: #f5f7fa;
+  height: 100vh;
 }
 
-/* Zone principale centrée */
-.reddit-container {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;   /* centre horizontal */
-  align-items: center;       /* centre vertical */
-  padding: 20px;
-}
-
-.content-wrapper {
-  width: 80%;
-  max-width: 900px;
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.historique-container {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
+  color: #0077b6;
 }
 
-.title {
-  font-size: 26px;
-  font-weight: bold;
-  color: #2c3e50;
-}
-
+/* Barre de recherche */
 .search-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
 }
 
 .search-bar {
-  width: 100%;
-  padding: 12px 20px;
+  width: 60%;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
   border: 1px solid #ccc;
-  border-radius: 25px;
-  font-size: 16px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-.posts-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+.search-bar:focus {
+  outline: none;
+  border-color: #0077b6;
+  box-shadow: 0 0 5px rgba(0, 119, 182, 0.4);
 }
 
-.post-card {
+/* Liste des éléments */
+.historique-item {
   background: #fff;
+  margin-bottom: 1rem;
+  padding: 1rem 1.5rem;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.historique-content {
   display: flex;
   flex-direction: column;
+  gap: 5px;
 }
 
-.post-title {
-  font-size: 18px;
+.historique-title {
   font-weight: bold;
-  margin: 0;
+  color: #333;
 }
 
-.post-source {
-  font-size: 14px;
-  color: #888;
+.historique-author {
+  color: #666;
+  font-size: 0.9rem;
 }
 
-.post-author {
-  font-size: 14px;
-  color: #555;
-  margin: 10px 0;
-}
+.historique-source.github { color: #333; }
+.historique-source.reddit { color: #ff4500; }
+.historique-source.news { color: #0077b6; }
+.historique-source.football { color: #009900; }
 
+/* Lien "Voir plus" */
 .post-link {
-  margin-top: auto;
-  color: #3498db;
+  color: #0077b6;
+  font-weight: 500;
   text-decoration: none;
-  font-weight: bold;
+  transition: color 0.3s;
 }
 
 .post-link:hover {
+  color: #005f8f;
   text-decoration: underline;
 }
 
+/* Message aucun résultat */
 .no-results {
-  grid-column: 1 / -1;
   text-align: center;
-  font-size: 18px;
-  color: #999;
-  margin-top: 20px;
+  color: #888;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+/* Loader */
+.loading {
+  text-align: center;
+  color: #0077b6;
+  font-weight: bold;
+  margin: 2rem 0;
 }

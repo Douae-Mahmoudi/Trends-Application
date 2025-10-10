@@ -32,7 +32,7 @@ interface OperationResponse {
 })
 export class FavoriteService {
   // URL du backend Flask
-  private readonly baseApiUrl = 'http://127.0.0.1:5001/api';
+  private readonly baseApiUrl = 'http://127.0.0.1:5000/api';
   private readonly favoritesUrl = `${this.baseApiUrl}/favorites`;
 
   // Options pour inclure le cookie de session

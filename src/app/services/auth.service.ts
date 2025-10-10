@@ -7,7 +7,7 @@ import { tap, catchError } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://127.0.0.1:5001/api';
+  private apiUrl = 'http://127.0.0.1:5000/api';
 
   // Utilise un BehaviorSubject pour suivre l'état d'authentification
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);

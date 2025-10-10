@@ -16,7 +16,7 @@ export class Login {
   private router = inject(Router);
 
   // URL du backend Flask
-  private readonly FLASK_AUTH_BASE_URL = 'http://127.0.0.1:5001';
+  private readonly FLASK_AUTH_BASE_URL = 'http://127.0.0.1:5000';
 
   // Signaux (pour gérer l’état de l’UI)
   isLoginMode = signal(true);
