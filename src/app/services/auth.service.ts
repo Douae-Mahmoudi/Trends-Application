@@ -30,7 +30,7 @@ export class AuthService {
     return this.isAuthenticatedSubject.value;
   }
 
-  // 🔐 Vérifie si une session est active côté backend
+  // 🔹 Vérifie la session côté backend
   checkSession(): void {
     this.http.get<any>(`${this.apiUrl}/session_test`, { withCredentials: true }).pipe(
       tap(response => {
@@ -47,6 +47,7 @@ export class AuthService {
     ).subscribe();
   }
 
+  // 🔹 Connexion utilisateur
   login(email: string, password: string): Observable<any> {
     const payload = { username: email, password: password };
     return this.http.post<any>(`${this.apiUrl}/login`, payload, { withCredentials: true }).pipe(
@@ -57,43 +58,67 @@ export class AuthService {
       }),
       catchError(error => {
         this.setAuthenticatedState(false, null);
-        return of(error);
+        return of({ success: false, message: 'Erreur de connexion', error });
       })
     );
   }
 
+  // 🔹 Déconnexion
   logout(): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
-      tap(() => {
-        this.setAuthenticatedState(false, null);
-      }),
+      tap(() => this.setAuthenticatedState(false, null)),
       catchError(error => {
-        console.error("Erreur lors de la déconnexion", error);
+        console.error('Erreur lors de la déconnexion', error);
         this.setAuthenticatedState(false, null);
-        return of(error);
+        return of({ success: false, message: 'Erreur lors de la déconnexion', error });
       })
     );
   }
 
+  // 🔹 Changement de mot de passe
   changePassword(oldPassword: string, newPassword: string): Observable<any> {
     const payload = {
-      old_password: oldPassword,
-      new_password: newPassword
+      current_password: oldPassword,      // ✅ conforme à Flask
+      new_password: newPassword,
+      confirm_password: newPassword       // ✅ Flask attend aussi confirm_password
     };
-    return this.http.post<any>(`${this.apiUrl}/change_password`, payload, { withCredentials: true }).pipe(
+
+    return this.http.post<any>(`${this.apiUrl}/change-password`, payload, { withCredentials: true }).pipe(
       catchError(error => {
         console.error('Erreur de changement de mot de passe', error);
-        return of(error);
+        return of({ success: false, message: 'Erreur serveur', error });
       })
     );
   }
 
+  // 🔹 Enregistrement d'un nouvel utilisateur
   register(email: string, password: string): Observable<any> {
     const payload = { username: email, password: password };
     return this.http.post<any>(`${this.apiUrl}/register`, payload).pipe(
       catchError(error => {
         console.error("Erreur lors de l'enregistrement", error);
-        return of(error);
+        return of({ success: false, message: "Erreur lors de l'inscription", error });
+      })
+    );
+  }
+
+  // 🔹 Réinitialisation du mot de passe oublié
+  resetPassword(email: string, newPassword: string): Observable<any> {
+    const payload = { email: email, new_password: newPassword };
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, payload).pipe(
+      catchError(error => {
+        console.error("Erreur lors de la réinitialisation", error);
+        return of({ success: false, message: "Erreur lors de la réinitialisation", error });
+      })
+    );
+  }
+
+  // 🔹 Vérifie si l'utilisateur est connecté via OAuth
+  checkOAuthUser(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/check-oauth-user`, { withCredentials: true }).pipe(
+      catchError(error => {
+        console.error("Erreur lors de la vérification OAuth", error);
+        return of({ success: false, message: "Erreur lors de la vérification OAuth", error });
       })
     );
   }

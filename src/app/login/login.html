@@ -5,8 +5,6 @@
     </div>
 
     <!-- Message Box for Feedback -->
-    <!-- ANCIEN : @if (message()) { -->
-    <!-- NOUVEAU : On appelle le signal 'message()' -->
     @if (message()) {
       <div class="message-box" [class.success]="isSuccess()" [class.error]="!isSuccess()">
         {{ message() }}
@@ -14,8 +12,6 @@
     }
 
     <!-- Section Connexion -->
-    <!-- ANCIEN : @if (isLoginMode) { -->
-    <!-- NOUVEAU : On appelle le signal 'isLoginMode()' -->
     @if (isLoginMode()) {
       <form (ngSubmit)="onLogin()">
         <div class="form-group">
@@ -34,13 +30,16 @@
       </div>
 
       <div class="social-login">
+        <!-- Connexion avec Google -->
         <button class="social-button" (click)="onGoogleLogin()">
           <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo" />
           Se connecter avec Google
         </button>
-        <button class="social-button" (click)="onLinkedinLogin()">
-          <img src="https://img.icons8.com/color/48/000000/linkedin.png" alt="LinkedIn Logo" />
-          Se connecter avec LinkedIn
+
+        <!-- Connexion avec GitHub -->
+        <button class="social-button" (click)="onGithubLogin()">
+          <img src="https://img.icons8.com/ios-glyphs/48/000000/github.png" alt="GitHub Logo" />
+          Se connecter avec GitHub
         </button>
       </div>
 
@@ -52,7 +51,7 @@
       <!-- Section Inscription -->
       <form (ngSubmit)="onRegister()">
         <div class="form-group">
-          <label for="name">Nom complet </label>
+          <label for="name">Nom complet</label>
           <input type="text" id="name" [(ngModel)]="registerForm.name" name="name" required>
         </div>
         <div class="form-group">
@@ -71,13 +70,16 @@
       </form>
 
       <div class="social-login">
+        <!-- Inscription avec Google -->
         <button class="social-button" (click)="onGoogleRegister()">
           <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo" />
           S'inscrire avec Google
         </button>
-        <button class="social-button" (click)="onLinkedinRegister()">
-          <img src="https://img.icons8.com/color/48/000000/linkedin.png" alt="LinkedIn Logo" />
-          S'inscrire avec LinkedIn
+
+        <!-- Inscription avec GitHub -->
+        <button class="social-button" (click)="onGithubRegister()">
+          <img src="https://img.icons8.com/ios-glyphs/48/000000/github.png" alt="GitHub Logo" />
+          S'inscrire avec GitHub
         </button>
       </div>
 

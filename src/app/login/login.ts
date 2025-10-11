@@ -136,7 +136,7 @@ export class Login {
     }
   }
 
-  // 🔗 Login via Google (redirige vers le backend)
+  // 🔗 Login via Google
   onGoogleLogin() {
     window.location.href = `${this.FLASK_AUTH_BASE_URL}/google_login/login`;
   }
@@ -145,12 +145,12 @@ export class Login {
     this.onGoogleLogin();
   }
 
-  // 🔗 Placeholder pour LinkedIn
-  onLinkedinLogin() {
-    this.setStatusMessage('Connexion via LinkedIn non encore implémentée.', false);
+  // 🔗 Login via GitHub
+  onGithubLogin() {
+    window.location.href = `${this.FLASK_AUTH_BASE_URL}/github_login/login`;
   }
 
-  onLinkedinRegister() {
-    this.setStatusMessage('Inscription via LinkedIn non encore implémentée.', false);
+  onGithubRegister() {
+    this.onGithubLogin();
   }
 }

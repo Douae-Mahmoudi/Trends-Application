@@ -6,6 +6,7 @@
     </div>
 
     <div class="settings-content">
+      <!-- Section Thème -->
       <div class="settings-section">
         <h3>Thème</h3>
         <label class="switch">
@@ -15,6 +16,7 @@
         <span class="theme-label">{{ isDarkMode ? 'Sombre' : 'Clair' }}</span>
       </div>
 
+      <!-- Section Changement de mot de passe -->
       <div class="settings-section">
         <h3>Réinitialiser le mot de passe</h3>
         <form (ngSubmit)="onChangePassword()">
@@ -26,11 +28,16 @@
             <label for="newPassword">Nouveau mot de passe</label>
             <input type="password" id="newPassword" name="newPassword" [(ngModel)]="newPassword" required>
           </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le nouveau mot de passe</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" [(ngModel)]="confirmPassword" required>
+          </div>
           <button type="submit">Changer</button>
         </form>
         <p class="message">{{ passwordChangeMessage }}</p>
       </div>
 
+      <!-- Section Déconnexion -->
       <div class="settings-section">
         <h3>Quitter l'application</h3>
         <button class="logout-button" (click)="logout()">Déconnexion</button>

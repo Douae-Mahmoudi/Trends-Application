@@ -1,34 +1,36 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+// Importez ChartDataset de Chart.js pour une compatibilité stricte
 import { ChartDataset } from 'chart.js';
+
+// L'URL de votre backend Flask
+const API_URL = 'http://127.0.0.1:5000/api';
+
+// Interface pour les données brutes reçues du backend Flask (INCHANGÉE)
+export interface TrendResult {
+  date: string;
+  category: string;
+  count: number;
+}
+
+/**
+ * Interface pour le format Chart.js attendu.
+ * Utilisez ChartDataset<'bar'> pour assurer la compatibilité avec le type Chart.js.
+ */
+export interface ChartData {
+  labels: string[]; // Les jours
+  datasets: ChartDataset<'bar'>[]; // Le type ChartDataset gère la propriété 'label: string | undefined'
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiDataService {
-  getPopularTopics(): Observable<{ labels: string[], datasets: ChartDataset<'bar'>[] }> {
-    const mockData = {
-      labels: ['IA générative', 'Cybersécurité', 'Développement Web', 'Voiture électrique'],
-      datasets: [
-        {
-          label: 'Score de Tendance',
-          data: [95, 78, 85, 90],
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.5)',
-            'rgba(54, 162, 235, 0.5)',
-            'rgba(255, 206, 86, 0.5)',
-            'rgba(75, 192, 192, 0.5)',
-          ],
-          borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(75, 192, 192, 1)',
-          ],
-          borderWidth: 1
-        } as ChartDataset<'bar'>
-      ]
-    };
-    return of(mockData);
+
+  constructor(private http: HttpClient) { }
+
+  getGlobalTrends(): Observable<{ success: boolean, data: TrendResult[] }> {
+    return this.http.get<{ success: boolean, data: TrendResult[] }>(`${API_URL}/trends/global`);
   }
 }

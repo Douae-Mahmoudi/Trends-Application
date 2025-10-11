@@ -1,18 +1,117 @@
-
-.chart-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  max-width: 600px;
-  width: 100%;
-  /* Centrer le cadre horizontalement */
-  margin: 0 auto;
+/* ---------------------------------- */
+/* 1. Mise en page générale et Sidebar */
+/* ---------------------------------- */
+.main-layout {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 400px;
+  min-height: 100vh;
+  background-color: #f4f7fa; /* Fond léger */
+  font-family: 'Inter', sans-serif;
 }
-h2{
+
+/* Conteneur principal du tableau de bord (prend l'espace restant) */
+.dashboard-container {
+  flex-grow: 1;
+  /* Ajustement de la marge gauche pour ne pas être masqué par la sidebar */
+  /* Assurez-vous que la largeur de votre sidebar est bien gérée par app-sidebar/CSS global */
+  margin-left: 250px; /* J'ajoute une marge pour simuler l'espace de la sidebar */
+  padding: 2.5rem 2rem;
+  overflow-x: hidden; /* Prévient le défilement horizontal */
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ---------------------------------- */
+/* 2. Titre */
+/* ---------------------------------- */
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 4px solid #007bff;
+  display: inline-block; /* Assure que la ligne s'arrête après le texte */
+}
+
+/* ---------------------------------- */
+/* 3. Carte du Graphique (Chart Card) */
+/* ---------------------------------- */
+.chart-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+
+  /* FIX CRUCIAL : Définit la hauteur du conteneur pour que le canvas soit visible */
+  position: relative;
+  /* Nouvelle hauteur réduite à 300px (était 400px) */
+  height: 300px;
+  min-height: 250px;
+}
+
+/* Le canvas doit prendre 100% de l'espace alloué par son parent (.chart-card) */
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ---------------------------------- */
+/* 4. Messages d'état */
+/* ---------------------------------- */
+.loading-spinner, .error-message {
   text-align: center;
+  padding: 5rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 8px;
+}
+
+.loading-spinner {
+  color: #007bff;
+  animation: pulse 1.5s infinite;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-weight: 600;
+  background-color: #fceae7;
+  border: 1px solid #e74c3c;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* ---------------------------------- */
+/* 5. Réactivité */
+/* ---------------------------------- */
+@media (max-width: 992px) {
+  .dashboard-container {
+    /* Ajuster la marge pour les tablettes */
+    margin-left: 100px;
+    padding: 1.5rem;
+  }
+  .chart-card {
+    height: 250px; /* Réduit pour les tablettes */
+  }
+}
+
+@media (max-width: 768px) {
+  /* Supprimer la marge gauche sur mobile (la sidebar doit passer en haut ou être masquée) */
+  .dashboard-container {
+    margin-left: 0;
+    padding: 1rem;
+  }
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .chart-card {
+    height: 200px; /* Réduit pour les mobiles */
+    padding: 1rem;
+  }
 }

@@ -15,8 +15,9 @@ import { Router } from '@angular/router';
 })
 export class Parametres implements OnInit {
   isDarkMode: boolean = false;
-  oldPassword!: string;
-  newPassword!: string;
+  oldPassword: string = '';
+  newPassword: string = '';
+  confirmPassword: string = '';
   passwordChangeMessage: string = '';
 
   constructor(
@@ -29,26 +30,50 @@ export class Parametres implements OnInit {
     this.isDarkMode = this.themeService.isDarkMode();
   }
 
+  // 🧩 Changement de mot de passe avec confirmation
   onChangePassword(): void {
-    const success = this.authService.changePassword(this.oldPassword, this.newPassword);
-    if (success) {
-      this.passwordChangeMessage = 'Mot de passe changé avec succès.';
-      this.oldPassword = '';
-      this.newPassword = '';
-    } else {
-      this.passwordChangeMessage = 'Erreur: Ancien mot de passe incorrect.';
+    if (!this.oldPassword || !this.newPassword || !this.confirmPassword) {
+      this.passwordChangeMessage = 'Veuillez remplir tous les champs.';
+      return;
     }
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.passwordChangeMessage = 'Les nouveaux mots de passe ne correspondent pas.';
+      return;
+    }
+
+    this.authService.changePassword(this.oldPassword, this.newPassword).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.passwordChangeMessage = '✅ Mot de passe changé avec succès.';
+          this.oldPassword = '';
+          this.newPassword = '';
+          this.confirmPassword = '';
+        } else {
+          this.passwordChangeMessage = `❌ Erreur : ${response.message || 'Ancien mot de passe incorrect.'}`;
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.passwordChangeMessage = '❌ Erreur lors du changement de mot de passe.';
+      }
+    });
   }
 
-  // Bascule le thème en utilisant le service dédié
+  // 🎨 Bascule le thème (sombre/clair)
   toggleTheme(): void {
     this.themeService.toggleTheme();
     this.isDarkMode = this.themeService.isDarkMode();
   }
 
-  // Gère la déconnexion de l'utilisateur
+  // 🚪 Déconnexion
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: (err) => {
+        console.error('Erreur lors de la déconnexion', err);
+        this.router.navigate(['/login']);
+      }
+    });
   }
 }

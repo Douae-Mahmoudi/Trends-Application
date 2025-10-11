@@ -1,4 +1,3 @@
-
 .main-layout {
   display: flex;
   min-height: 100vh;
@@ -154,4 +153,23 @@ button[type="submit"]:disabled {
   margin-top: 15px;
   font-style: italic;
   color: #3498db;
+}
+/* Confirm Password spécifique */
+.form-group.confirm-password {
+  margin-bottom: 15px;
+}
+
+.form-group.confirm-password label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group.confirm-password input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: var(--input-background-color);
+  color: var(--input-text-color);
 }
