@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
 import { HttpClientModule } from '@angular/common/http'; // Ajouté pour s'assurer que HttpClient est disponible
+import HistoriqueService from '../services/historique.service';
+import { AuthService } from '../services/auth.service';
 
-// Définition de la structure de base des données de match
 interface FootballMatch {
   away_team: string;
   category: string;
@@ -14,15 +15,14 @@ interface FootballMatch {
   home_team: string;
   score: string;
   status: string;
-  // Ajout de l'ID BDD pour la suppression future
   favoriteId: number | null;
   isFavorite: boolean;
+  url: string;
 }
 
 @Component({
   selector: 'app-football',
   standalone: true,
-  // IMPORTANT : Ajoutez HttpClientModule pour les services utilisant HTTP
   imports: [CommonModule, FormsModule, Sidebar, HttpClientModule],
   templateUrl: './football.html',
   styleUrls: ['./football.css']
@@ -33,9 +33,15 @@ export class Football implements OnInit {
   searchTerm: string = '';
   showModal: boolean = false;
   selectedMatch: FootballMatch | null = null;
-  private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
+  private currentFavorites: FavoriteItem[] = [];
 
-  constructor(private favoriteService: FavoriteService) {}
+  isLoading: boolean = true;
+
+  constructor(
+    private favoriteService: FavoriteService,
+    private historiqueService: HistoriqueService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadCurrentFavorites().then(() => {
@@ -43,12 +49,11 @@ export class Football implements OnInit {
     });
   }
 
-  // 1. Chargement initial des favoris pour pouvoir marquer les matchs existants
   async loadCurrentFavorites(): Promise<void> {
     return new Promise((resolve) => {
       this.favoriteService.getFavorites().subscribe({
         next: (data) => {
-          this.currentFavorites = data;
+          this.currentFavorites = data.filter(fav => fav.source === 'football'); // Filtrage spécifique
           console.log("Favoris chargés:", data.length);
           resolve();
         },
@@ -60,14 +65,18 @@ export class Football implements OnInit {
     });
   }
 
-  // 🔥 Récupération des matchs et vérification de l'état "Favori"
+  // Récupération des matchs et vérification de l'état "Favori"
   fetchMatches(): void {
+    this.isLoading = true; // 💡 Début du chargement
     fetch('http://127.0.0.1:5000/api/sports')
       .then(res => res.json())
       .then((data: any) => {
         const matches = Array.isArray(data) ? data : data.all_matches;
 
         this.allMatches = matches.map((match: any) => {
+          const matchTitle = this.generateMatchTitle(match);
+          const matchUrl = this.generateMatchUrl(matchTitle);
+
           const formatted: FootballMatch = {
             away_team: match.away_team,
             category: match.category ?? "sports",
@@ -76,21 +85,23 @@ export class Football implements OnInit {
             home_team: match.home_team,
             score: match.score,
             status: match.status,
-            // Vérifie si le match est dans la liste des favoris chargés
-            ...this.checkIfFavorite(match)
+            url: matchUrl,
+            ...this.checkIfFavorite({title: matchTitle, url: matchUrl})
           };
           return formatted;
         });
 
         this.filteredMatches = this.allMatches;
+        this.isLoading = false;
       })
-      .catch(err => console.error("Erreur chargement des matchs:", err));
+      .catch(err => {
+        console.error("Erreur chargement des matchs:", err);
+        this.isLoading = false;
+      });
   }
 
-  // 🔍 Fonction utilitaire pour la vérification
-  private checkIfFavorite(match: any): { isFavorite: boolean, favoriteId: number | null } {
-    const matchTitle = this.generateMatchTitle(match);
-    const favorite = this.currentFavorites.find(fav => fav.title === matchTitle);
+  private checkIfFavorite(item: {title: string, url: string}): { isFavorite: boolean, favoriteId: number | null } {
+    const favorite = this.currentFavorites.find(fav => fav.url === item.url);
 
     return {
       isFavorite: !!favorite,
@@ -98,9 +109,7 @@ export class Football implements OnInit {
     };
   }
 
-  // 🔍 Recherche (Logique inchangée)
   filterMatches(): void {
-    // ... code inchangé ...
     if (this.searchTerm.trim() === '') {
       this.filteredMatches = this.allMatches;
     } else {
@@ -112,10 +121,19 @@ export class Football implements OnInit {
     }
   }
 
-  // 📌 Modal (Logique inchangée)
   openModal(match: FootballMatch): void {
     this.selectedMatch = match;
     this.showModal = true;
+
+    if (this.authService.isLoggedIn()) {
+      const source: any = 'football';
+      this.historiqueService.trackVisit(
+        this.generateMatchTitle(match),
+        match.url,
+        source,
+        match.competition
+      );
+    }
   }
 
   closeModal(): void {
@@ -123,7 +141,6 @@ export class Football implements OnInit {
     this.selectedMatch = null;
   }
 
-  // ⭐ Favoris - Logique Asynchrone
   toggleFavorite(match: FootballMatch): void {
     match.isFavorite = !match.isFavorite; // Optimistic UI update
 
@@ -149,17 +166,16 @@ export class Football implements OnInit {
     } else {
       // Ajout du favori
       const title = this.generateMatchTitle(match);
+      const url = match.url; // Utilise l'URL déjà calculée
       const category = match.competition;
       const source = match.category;
-      const url = `https://sport-match-link-fictif/${title.replace(/\s/g, '-')}`; // Utilise une URL fictive
+
 
       this.favoriteService.addFavorite(title, url, category, source).subscribe({
         next: (response) => {
-          // L'API POST ne retourne pas l'ID, donc il faut recharger les favoris pour avoir l'ID
-          // Simplification: On recharge les favoris après un ajout réussi.
+          // L'ajout a réussi, on recharge les favoris pour récupérer l'ID généré
           this.loadCurrentFavorites().then(() => {
-            // Une fois les favoris rechargés, mettez à jour l'état du match pour obtenir le nouvel ID
-            const updatedState = this.checkIfFavorite(match);
+            const updatedState = this.checkIfFavorite({ title: title, url: url });
             match.favoriteId = updatedState.favoriteId;
           });
         },
@@ -172,7 +188,11 @@ export class Football implements OnInit {
     }
   }
 
-  private generateMatchTitle(match: FootballMatch): string {
+  private generateMatchTitle(match: any): string {
     return `${match.home_team} vs ${match.away_team} - ${match.date}`;
+  }
+
+  private generateMatchUrl(title: string): string {
+    return `https://sports.example.com/match/${title.replace(/[^a-zA-Z0-9]/g, '_')}`;
   }
 }

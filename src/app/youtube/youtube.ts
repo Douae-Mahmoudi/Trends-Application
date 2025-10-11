@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
-import { HttpClientModule } from '@angular/common/http'; // 👈 Import nécessaire pour le service HTTP
+import { HttpClientModule } from '@angular/common/http';
+
+// 💡 NOUVEAUX IMPORTS
+import HistoriqueService from '../services/historique.service';
+import { AuthService } from '../services/auth.service';
 
 interface YoutubeVideo {
   category: string;
@@ -31,7 +35,15 @@ export class Youtube implements OnInit {
   selectedVideo: YoutubeVideo | null = null;
   private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
 
-  constructor(private favoriteService: FavoriteService) {}
+  // 💡 NOUVEAU : Propriété pour l'état de chargement
+  isLoading: boolean = true;
+
+  constructor(
+    private favoriteService: FavoriteService,
+    // 💡 NOUVEAU : Injection des services d'authentification et d'historique
+    private historiqueService: HistoriqueService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     // 1. Charger les favoris actuels avant de charger les vidéos
@@ -45,7 +57,8 @@ export class Youtube implements OnInit {
     return new Promise((resolve) => {
       this.favoriteService.getFavorites().subscribe({
         next: (data) => {
-          this.currentFavorites = data;
+          // On filtre si possible pour ne garder que les favoris YouTube si nécessaire
+          this.currentFavorites = data.filter(fav => fav.source === 'youtube');
           resolve();
         },
         error: (err) => {
@@ -82,9 +95,11 @@ export class Youtube implements OnInit {
           ...this.checkIfFavorite(video)
         }));
         this.filteredVideos = this.allVideos;
+        this.isLoading = false; // 💡 Fin du chargement
       })
       .catch(error => {
         console.error('❌ Erreur lors du chargement des tendances YouTube:', error);
+        this.isLoading = false; // 💡 Fin du chargement même en cas d'erreur
       });
   }
 
@@ -101,12 +116,15 @@ export class Youtube implements OnInit {
     }
   }
 
-  // 📌 Recherche via backend (inchangé)
+  // 📌 Recherche via backend
   searchVideosBackend(): void {
     if (this.searchTerm.trim() === '') {
       this.filteredVideos = this.allVideos;
       return;
     }
+
+    // On met à jour l'état de chargement si une recherche démarre
+    this.isLoading = true;
 
     fetch(`http://127.0.0.1:5000/api/search/${this.searchTerm}`)
       .then(response => response.json())
@@ -120,16 +138,29 @@ export class Youtube implements OnInit {
           // 👈 Utiliser la fonction de vérification
           ...this.checkIfFavorite(video)
         }));
+        this.isLoading = false; // 💡 Fin du chargement après la recherche
       })
       .catch(error => {
         console.error('❌ Erreur lors de la recherche YouTube:', error);
+        this.isLoading = false; // 💡 Fin du chargement même en cas d'erreur
       });
   }
 
-  // 📌 Gestion de la fenêtre modale (inchangé)
+  // 📌 Gestion de la fenêtre modale
   openModal(video: YoutubeVideo): void {
     this.selectedVideo = video;
     this.showModal = true;
+
+    // 💡 NOUVEAU : Enregistrement dans l'historique
+    if (this.authService.isLoggedIn()) {
+      // NOTE: Ceci nécessite l'ajout de 'youtube' à la SourceType dans historique.service.ts
+      this.historiqueService.trackVisit(
+        video.title,
+        video.url,
+        'youtube', // Source
+        video.category || 'trending' // Catégorie
+      );
+    }
   }
 
   closeModal(): void {

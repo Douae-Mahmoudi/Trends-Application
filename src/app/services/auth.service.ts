@@ -9,38 +9,50 @@ import { tap, catchError } from 'rxjs/operators';
 export class AuthService {
   private apiUrl = 'http://127.0.0.1:5000/api';
 
-  // Utilise un BehaviorSubject pour suivre l'état d'authentification
+  // Suivi de l'état d'authentification
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  // Observable public pour que les composants puissent s'abonner
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  // Sujet pour stocker et diffuser l'email de l'utilisateur
+  // Suivi de l'email utilisateur
   private userEmailSubject = new BehaviorSubject<string | null>(null);
   userEmail$ = this.userEmailSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Tentative de vérifier l'état au démarrage (peut être basé sur un cookie ou localStorage, si utilisé)
-    // Pour l'instant, on laisse l'état à false et on s'appuie sur le login pour le mettre à jour.
+    this.checkSession(); // Vérifie la session dès le démarrage
   }
 
-  // Méthode pour mettre à jour l'état et l'email après un succès de connexion
   private setAuthenticatedState(isAuthenticated: boolean, email: string | null = null): void {
     this.isAuthenticatedSubject.next(isAuthenticated);
     this.userEmailSubject.next(email);
   }
 
-  // NOUVELLE MÉTHODE POUR L'AUTH GUARD (permet de vérifier l'état actuel)
   isLoggedIn(): boolean {
     return this.isAuthenticatedSubject.value;
   }
 
-  // Fonction de connexion
+  // 🔐 Vérifie si une session est active côté backend
+  checkSession(): void {
+    this.http.get<any>(`${this.apiUrl}/session_test`, { withCredentials: true }).pipe(
+      tap(response => {
+        if (response.username) {
+          this.setAuthenticatedState(true, response.username);
+        } else {
+          this.setAuthenticatedState(false, null);
+        }
+      }),
+      catchError(() => {
+        this.setAuthenticatedState(false, null);
+        return of(null);
+      })
+    ).subscribe();
+  }
+
   login(email: string, password: string): Observable<any> {
     const payload = { username: email, password: password };
     return this.http.post<any>(`${this.apiUrl}/login`, payload, { withCredentials: true }).pipe(
       tap(response => {
         if (response.success) {
-          this.setAuthenticatedState(true, email); // Met à jour l'état après un succès
+          this.setAuthenticatedState(true, email);
         }
       }),
       catchError(error => {
@@ -50,29 +62,24 @@ export class AuthService {
     );
   }
 
-  // Fonction de déconnexion
   logout(): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
       tap(() => {
-        this.setAuthenticatedState(false, null); // Réinitialise l'état après déconnexion
+        this.setAuthenticatedState(false, null);
       }),
       catchError(error => {
         console.error("Erreur lors de la déconnexion", error);
-        // Même en cas d'erreur côté serveur, nous déconnectons côté client
         this.setAuthenticatedState(false, null);
         return of(error);
       })
     );
   }
 
-  // NOUVELLE MÉTHODE POUR CHANGER LE MOT DE PASSE
   changePassword(oldPassword: string, newPassword: string): Observable<any> {
     const payload = {
       old_password: oldPassword,
       new_password: newPassword
     };
-
-    // Nous allons créer cet endpoint dans le backend Flask juste après
     return this.http.post<any>(`${this.apiUrl}/change_password`, payload, { withCredentials: true }).pipe(
       catchError(error => {
         console.error('Erreur de changement de mot de passe', error);
@@ -81,7 +88,6 @@ export class AuthService {
     );
   }
 
-  // Fonction d'enregistrement
   register(email: string, password: string): Observable<any> {
     const payload = { username: email, password: password };
     return this.http.post<any>(`${this.apiUrl}/register`, payload).pipe(

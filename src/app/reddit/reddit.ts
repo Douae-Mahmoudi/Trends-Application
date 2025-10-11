@@ -4,13 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import HistoriqueService from '../services/historique.service';
+import { AuthService } from '../services/auth.service';
+
 
 interface TrendingPost {
   author: string;
   title: string;
   url: string; // Utilisé comme identifiant unique
   isFavorite: boolean;
-  favoriteId: number | null; // 👈 ID du favori dans la base de données (pour suppression)
+  favoriteId: number | null; // ID du favori dans la base de données (pour suppression)
 }
 
 @Component({
@@ -33,9 +36,14 @@ export class Reddit implements OnInit {
   selectedPost: TrendingPost | null = null;
   private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
 
+
+  isLoading: boolean = true;
+
   constructor(
     private favoriteService: FavoriteService,
-    private http: HttpClient
+    private http: HttpClient,
+    private historiqueService: HistoriqueService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -45,12 +53,11 @@ export class Reddit implements OnInit {
     });
   }
 
-  // 1. Chargement asynchrone des favoris depuis le backend
   async loadCurrentFavorites(): Promise<void> {
     return new Promise((resolve) => {
       this.favoriteService.getFavorites().subscribe({
         next: (data) => {
-          this.currentFavorites = data;
+          this.currentFavorites = data.filter(fav => fav.category === 'reddit');
           resolve();
         },
         error: (err) => {
@@ -75,22 +82,24 @@ export class Reddit implements OnInit {
   // 🔹 Récupération des tendances Reddit depuis le backend Flask
   fetchRedditTrends(): void {
     this.http.get<any[]>('http://localhost:5000/api/reddit')
-      .subscribe(
-        (data) => {
-          console.log("✅ Données reçues du backend:", data);
+      .subscribe({
+        next: (data) => {
+          console.log(" Données reçues du backend:", data);
           this.allPosts = data.map(post => ({
             author: post.author,
             title: post.title,
             url: post.url,
-            // 👈 Utiliser la fonction de vérification
+            //  Utiliser la fonction de vérification
             ...this.checkIfFavorite(post)
           }));
           this.filteredPosts = this.allPosts;
+          this.isLoading = false; //  Fin du chargement
         },
-        (error) => {
-          console.error("❌ Erreur lors de la récupération des tendances Reddit:", error);
+        error: (error) => {
+          console.error(" Erreur lors de la récupération des tendances Reddit:", error);
+          this.isLoading = false; //  Fin du chargement même en cas d'erreur
         }
-      );
+      });
   }
 
   // 🔹 Filtrer les posts selon le texte saisi (inchangé)
@@ -106,10 +115,20 @@ export class Reddit implements OnInit {
     }
   }
 
-  // 🔹 Ouvrir la fenêtre modale (inchangé)
+  // 🔹 Ouvrir la fenêtre modale
   openModal(post: TrendingPost): void {
     this.selectedPost = post;
     this.showModal = true;
+
+    // 💡 NOUVEAU : Enregistrement dans l'historique
+    if (this.authService.isLoggedIn()) {
+      this.historiqueService.trackVisit(
+        post.title,
+        post.url,
+        'reddit', // Source
+        'trending' // Catégorie (ou toute autre valeur pertinente)
+      );
+    }
   }
 
   // 🔹 Fermer la fenêtre modale (inchangé)

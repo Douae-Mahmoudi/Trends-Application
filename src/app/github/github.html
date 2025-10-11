@@ -17,10 +17,14 @@
       </div>
 
       <div class="topics-list">
-        <div *ngIf="filteredTopics.length === 0" class="no-results">
-          loading...
-
+        <div *ngIf="isLoading" class="loading-state">
+          Chargement des tendances... veuillez patienter.
         </div>
+
+        <div *ngIf="!isLoading && filteredTopics.length === 0" class="no-results">
+          Aucun résultat trouvé. Veuillez essayer un autre terme.
+        </div>
+
         <div *ngFor="let topic of filteredTopics" class="topic-card">
           <div class="topic-header">
             <h3 class="topic-title" (click)="openModal(topic)">{{ topic.full_name }}</h3>

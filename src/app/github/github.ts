@@ -1,9 +1,15 @@
+// src/app/github/github.ts
+
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { Modal } from '../modal/modal';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
+
+// NOUVEL IMPORT POUR L'HISTORIQUE
+import HistoriqueService from '../services/historique.service';
+
 import { HttpClientModule } from '@angular/common/http';
 // NOUVEAUX IMPORTS POUR L'AUTHENTIFICATION
 import { AuthService } from '../services/auth.service';
@@ -20,7 +26,7 @@ interface TrendingTopic {
   stars: number;
   watchers: number;
   isFavorite: boolean;
-  favoriteId: number | null; // ID du favori dans la base de données (pour suppression)
+  favoriteId: number | null;
 }
 
 @Component({
@@ -31,7 +37,7 @@ interface TrendingTopic {
   templateUrl: './github.html',
   styleUrls: ['./github.css']
 })
-export class Github implements OnInit, OnDestroy { // Ajout de OnDestroy
+export class Github implements OnInit, OnDestroy {
   allTopics: TrendingTopic[] = [];
   filteredTopics: TrendingTopic[] = [];
   searchTerm: string = '';
@@ -39,16 +45,18 @@ export class Github implements OnInit, OnDestroy { // Ajout de OnDestroy
   selectedTopic: TrendingTopic | null = null;
   private currentFavorites: FavoriteItem[] = [];
 
+  isLoading: boolean = true;
+
   private authSubscription!: Subscription; // Abonnement pour le nettoyage
 
-  // Injection de AuthService en plus de FavoriteService
   constructor(
     private favoriteService: FavoriteService,
-    private authService: AuthService
+    private authService: AuthService,
+    private historiqueService: HistoriqueService
   ) {}
 
   ngOnInit(): void {
-    // 1. Charger les tendances GitHub immédiatement (elles ne nécessitent pas de connexion)
+    // 1. Charger les tendances GitHub immédiatement
     this.fetchGithubTrends();
 
     // 2. S'abonner à l'état d'authentification pour charger les favoris
@@ -127,11 +135,14 @@ export class Github implements OnInit, OnDestroy { // Ajout de OnDestroy
           owner: topic.owner,
           stars: topic.stars,
           watchers: topic.watchers,
-          // Nous n'appelons plus checkIfFavorite ici, on le fera après la connexion.
           isFavorite: false,
           favoriteId: null
         }));
         this.filteredTopics = this.allTopics;
+
+        // 💡 CORRIGÉ : Fin du chargement après la récupération des données
+        this.isLoading = false;
+
         // Si l'utilisateur est déjà connecté au chargement de la page, on charge les favoris
         if (this.authService.isLoggedIn()) {
           this.loadCurrentFavorites();
@@ -139,6 +150,8 @@ export class Github implements OnInit, OnDestroy { // Ajout de OnDestroy
       })
       .catch(error => {
         console.error('Erreur lors du chargement des tendances GitHub:', error);
+        // 💡 CORRIGÉ : Fin du chargement, même en cas d'erreur
+        this.isLoading = false;
       });
   }
 
@@ -158,6 +171,16 @@ export class Github implements OnInit, OnDestroy { // Ajout de OnDestroy
   openModal(topic: TrendingTopic): void {
     this.selectedTopic = topic;
     this.showModal = true;
+
+    // 💡 AJOUTÉ : Enregistre la visite si l'utilisateur est connecté
+    if (this.authService.isLoggedIn()) {
+      this.historiqueService.trackVisit(
+        topic.full_name, // title
+        topic.url,        // url
+        'github',         // source
+        topic.category    // category (optionnel)
+      );
+    }
   }
 
   closeModal(): void {
@@ -167,8 +190,7 @@ export class Github implements OnInit, OnDestroy { // Ajout de OnDestroy
 
   // ⭐ Logique de favori mise à jour (asynchrone)
   toggleFavorite(topic: TrendingTopic): void {
-    // ... (La logique ici est correcte car elle est déclenchée par un clic,
-    // ce qui se produit après que l'utilisateur est déjà connecté)
+    // ... (Logique de favori inchangée)
     topic.isFavorite = !topic.isFavorite; // Mise à jour optimiste
 
     if (!topic.isFavorite) {

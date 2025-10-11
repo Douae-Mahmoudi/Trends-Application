@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
-import { HttpClientModule } from '@angular/common/http'; // 👈 Import nécessaire pour le service HTTP
+import { HttpClientModule } from '@angular/common/http';
+
+import HistoriqueService from '../services/historique.service';
+
+import { AuthService } from '../services/auth.service';
 
 interface NewsArticle {
   author: string;
@@ -31,7 +35,15 @@ export class News implements OnInit {
   selectedArticle: NewsArticle | null = null;
   private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
 
-  constructor(private favoriteService: FavoriteService) {}
+  // 💡 NOUVEAU : Propriété pour l'état de chargement
+  isLoading: boolean = true;
+
+  constructor(
+    private favoriteService: FavoriteService,
+    // 💡 NOUVEAU : Injection des services d'authentification et d'historique
+    private historiqueService: HistoriqueService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     // 1. Charger les favoris actuels avant de charger les articles
@@ -45,7 +57,7 @@ export class News implements OnInit {
     return new Promise((resolve) => {
       this.favoriteService.getFavorites().subscribe({
         next: (data) => {
-          this.currentFavorites = data;
+          this.currentFavorites = data.filter(fav => fav.source === 'news'); // Filtrage spécifique
           resolve();
         },
         error: (err) => {
@@ -69,7 +81,8 @@ export class News implements OnInit {
 
   // 🔥 Récupération des articles et initialisation de l'état "Favori"
   fetchArticles(): void {
-    fetch('http://127.0.0.1:5000/api/news') // ✅ adapte l’URL selon ton API
+    this.isLoading = true; // 💡 Début du chargement
+    fetch('http://127.0.0.1:5000/api/news')
       .then(res => res.json())
       .then((data: any) => {
         console.log("Données reçues du backend (news):", data);
@@ -87,8 +100,12 @@ export class News implements OnInit {
         }));
 
         this.filteredArticles = this.allArticles;
+        this.isLoading = false; // 💡 Fin du chargement
       })
-      .catch(err => console.error("Erreur lors du chargement des articles:", err));
+      .catch(err => {
+        console.error("Erreur lors du chargement des articles:", err);
+        this.isLoading = false; // 💡 Fin du chargement même en cas d'erreur
+      });
   }
 
   filterArticles(): void {
@@ -107,6 +124,19 @@ export class News implements OnInit {
   openModal(article: NewsArticle): void {
     this.selectedArticle = article;
     this.showModal = true;
+
+    // 💡 NOUVEAU : Enregistrement dans l'historique
+    if (this.authService.isLoggedIn()) {
+      // ✅ CORRECTION TEMPORAIRE : On utilise 'as any' pour bypasser l'erreur de typage
+      // en attendant que 'news' soit ajouté à l'union de types SourceType dans HistoriqueService.
+      const source: any = 'news';
+      this.historiqueService.trackVisit(
+        article.title,
+        article.url,
+        source, // Source
+        article.category // Catégorie
+      );
+    }
   }
 
   closeModal(): void {

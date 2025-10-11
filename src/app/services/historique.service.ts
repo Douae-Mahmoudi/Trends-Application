@@ -1,42 +1,102 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 export interface HistoriqueItem {
   id?: number;
   title: string;
-  source: 'github' | 'reddit' | 'news' | 'football';
-  author: string;
+  source: 'github' | 'reddit' | 'news' | 'football'|'youtube';
+  author?: string;
   url: string;
+  category?: string;
+  visited_at?: string;
 }
 
 @Injectable({ providedIn: 'root' })
-export class HistoriqueService {
-  private apiUrl = 'http://localhost:5000/api/history';
+class HistoriqueService {
+  /** 🔹 URL de ton backend Flask */
+  private apiUrl = 'http://127.0.0.1:5000/api/history';
 
   constructor(private http: HttpClient) {}
 
-  getTrends(): Observable<HistoriqueItem[]> {
-    return this.http.get<HistoriqueItem[]>(this.apiUrl, {
-      withCredentials: true  // ← AJOUTÉ ICI !
-    });
+  /** 🔹 Récupérer tout l’historique */
+  getHistory(): Observable<HistoriqueItem[]> {
+    return this.http
+      .get<{ success: boolean; data: HistoriqueItem[] }>(this.apiUrl, {
+        withCredentials: true,
+      })
+      .pipe(
+        map((response) => {
+          if (response.success && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('❌ Erreur lors de la récupération de l’historique', error);
+          return of([]);
+        })
+      );
   }
 
-  addToHistory(item: HistoriqueItem): Observable<any> {
-    return this.http.post(this.apiUrl, item, {
-      withCredentials: true  // ← AJOUTÉ ICI AUSSI !
-    });
+  /** 🔹 Ajouter un élément à l’historique */
+  addToHistory(item: HistoriqueItem): Observable<{ success: boolean; message?: string }> {
+    return this.http.post<{ success: boolean; message?: string }>(
+      this.apiUrl,
+      item,
+      { withCredentials: true }
+    ).pipe(
+      catchError(error => {
+        console.error('❌ Erreur lors de l’ajout à l’historique', error);
+        return of({ success: false, message: 'Erreur réseau ou serveur' });
+      })
+    );
   }
 
-  clearHistory(): Observable<any> {
-    return this.http.delete(this.apiUrl, {
-      withCredentials: true  // ← AJOUTÉ ICI AUSSI !
-    });
+  /** 🔹 Supprimer un élément spécifique */
+  deleteItem(id: number): Observable<{ success: boolean; message?: string }> {
+    return this.http.delete<{ success: boolean; message?: string }>(
+      `${this.apiUrl}/${id}`,
+      { withCredentials: true }
+    ).pipe(
+      catchError(error => {
+        console.error('❌ Erreur lors de la suppression d’un élément', error);
+        return of({ success: false, message: 'Erreur réseau ou serveur' });
+      })
+    );
   }
 
-  deleteItem(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, {
-      withCredentials: true  // ← AJOUTÉ ICI AUSSI !
+  /** 🔹 Effacer tout l’historique */
+  clearHistory(): Observable<{ success: boolean; message?: string }> {
+    return this.http.delete<{ success: boolean; message?: string }>(
+      this.apiUrl,
+      { withCredentials: true }
+    ).pipe(
+      catchError(error => {
+        console.error('❌ Erreur lors de l’effacement de l’historique', error);
+        return of({ success: false, message: 'Erreur réseau ou serveur' });
+      })
+    );
+  }
+
+  /** 🔹 Enregistrer automatiquement une visite */
+  trackVisit(title: string, url: string, source: 'github' | 'reddit' | 'news' | 'football'|'youtube', category?: string): void {
+    const item: HistoriqueItem = {
+      title,
+      url,
+      source,
+      category: category || ''
+    };
+
+    this.addToHistory(item).subscribe(response => {
+      if (response.success) {
+        console.log('✅ Visite enregistrée dans l’historique');
+      } else {
+        console.warn('⚠️ Échec de l’enregistrement de la visite');
+      }
     });
   }
 }
+
+export default HistoriqueService
