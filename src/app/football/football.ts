@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
-import { HttpClientModule } from '@angular/common/http'; // Ajouté pour s'assurer que HttpClient est disponible
+import { HttpClientModule } from '@angular/common/http'; 
 import HistoriqueService from '../services/historique.service';
 import { AuthService } from '../services/auth.service';
 
@@ -67,7 +67,7 @@ export class Football implements OnInit {
 
   // Récupération des matchs et vérification de l'état "Favori"
   fetchMatches(): void {
-    this.isLoading = true; // 💡 Début du chargement
+    this.isLoading = true; 
     fetch('http://127.0.0.1:5000/api/sports')
       .then(res => res.json())
       .then((data: any) => {
@@ -150,7 +150,6 @@ export class Football implements OnInit {
         this.favoriteService.removeFavorite(match.favoriteId).subscribe({
           next: () => {
             match.favoriteId = null; // Supprime l'ID local
-            // Optionnel: Mettre à jour currentFavorites
           },
           error: (err) => {
             console.error('Erreur de suppression:', err);
@@ -159,7 +158,6 @@ export class Football implements OnInit {
           }
         });
       } else {
-        // Cas où l'ID n'était pas chargé, mais le match était marqué comme favori
         console.warn("Impossible de supprimer le favori car l'ID est manquant.");
       }
 
