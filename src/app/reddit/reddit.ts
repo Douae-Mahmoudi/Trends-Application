@@ -11,9 +11,9 @@ import { AuthService } from '../services/auth.service';
 interface TrendingPost {
   author: string;
   title: string;
-  url: string; // Utilisé comme identifiant unique
+  url: string;
   isFavorite: boolean;
-  favoriteId: number | null; // ID du favori dans la base de données (pour suppression)
+  favoriteId: number | null;
 }
 
 @Component({
@@ -34,7 +34,7 @@ export class Reddit implements OnInit {
   searchTerm: string = '';
   showModal: boolean = false;
   selectedPost: TrendingPost | null = null;
-  private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
+  private currentFavorites: FavoriteItem[] = [];
 
 
   isLoading: boolean = true;
@@ -47,7 +47,7 @@ export class Reddit implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // 1. Charger les favoris actuels avant de charger les posts
+    // Charger les favoris actuels avant de charger les posts
     this.loadCurrentFavorites().then(() => {
       this.fetchRedditTrends();
     });
@@ -68,9 +68,8 @@ export class Reddit implements OnInit {
     });
   }
 
-  // 2. Vérification de l'état "Favori" pour un post
+  //  Vérification de l'état "Favori" pour un post
   private checkIfFavorite(post: any): { isFavorite: boolean, favoriteId: number | null } {
-    // On utilise l'URL, qui est le champ 'url' dans la table 'favorites' du backend
     const favorite = this.currentFavorites.find(fav => fav.url === post.url);
 
     return {
@@ -79,7 +78,7 @@ export class Reddit implements OnInit {
     };
   }
 
-  // 🔹 Récupération des tendances Reddit depuis le backend Flask
+  //  Récupération des tendances Reddit depuis le backend Flask
   fetchRedditTrends(): void {
     this.http.get<any[]>('http://localhost:5000/api/reddit')
       .subscribe({
@@ -89,20 +88,18 @@ export class Reddit implements OnInit {
             author: post.author,
             title: post.title,
             url: post.url,
-            //  Utiliser la fonction de vérification
             ...this.checkIfFavorite(post)
           }));
           this.filteredPosts = this.allPosts;
-          this.isLoading = false; //  Fin du chargement
+          this.isLoading = false;
         },
         error: (error) => {
           console.error(" Erreur lors de la récupération des tendances Reddit:", error);
-          this.isLoading = false; //  Fin du chargement même en cas d'erreur
+          this.isLoading = false;
         }
       });
   }
 
-  // 🔹 Filtrer les posts selon le texte saisi (inchangé)
   filterPosts(): void {
     if (this.searchTerm.trim() === '') {
       this.filteredPosts = this.allPosts;
@@ -115,29 +112,29 @@ export class Reddit implements OnInit {
     }
   }
 
-  // 🔹 Ouvrir la fenêtre modale
+  //  Ouvrir la fenêtre modale
   openModal(post: TrendingPost): void {
     this.selectedPost = post;
     this.showModal = true;
 
-    // 💡 NOUVEAU : Enregistrement dans l'historique
+    // Enregistrement dans l'historique
     if (this.authService.isLoggedIn()) {
       this.historiqueService.trackVisit(
         post.title,
         post.url,
         'reddit', // Source
-        'trending' // Catégorie (ou toute autre valeur pertinente)
+        'trending' // Catégorie
       );
     }
   }
 
-  // 🔹 Fermer la fenêtre modale (inchangé)
+  // Fermer la fenêtre modale
   closeModal(): void {
     this.showModal = false;
     this.selectedPost = null;
   }
 
-  // ⭐ Logique de favori mise à jour (asynchrone)
+  //  Logique de favori mise à jour (asynchrone)
   toggleFavorite(post: TrendingPost): void {
     post.isFavorite = !post.isFavorite; // Mise à jour optimiste
 

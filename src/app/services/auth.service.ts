@@ -9,11 +9,9 @@ import { tap, catchError } from 'rxjs/operators';
 export class AuthService {
   private apiUrl = 'http://127.0.0.1:5000/api';
 
-  // Suivi de l'état d'authentification
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  // Suivi de l'email utilisateur
   private userEmailSubject = new BehaviorSubject<string | null>(null);
   userEmail$ = this.userEmailSubject.asObservable();
 
@@ -30,7 +28,6 @@ export class AuthService {
     return this.isAuthenticatedSubject.value;
   }
 
-  // 🔹 Vérifie la session côté backend
   checkSession(): void {
     this.http.get<any>(`${this.apiUrl}/session_test`, { withCredentials: true }).pipe(
       tap(response => {
@@ -47,7 +44,7 @@ export class AuthService {
     ).subscribe();
   }
 
-  // 🔹 Connexion utilisateur
+  // Connexion utilisateur
   login(email: string, password: string): Observable<any> {
     const payload = { username: email, password: password };
     return this.http.post<any>(`${this.apiUrl}/login`, payload, { withCredentials: true }).pipe(
@@ -63,7 +60,7 @@ export class AuthService {
     );
   }
 
-  // 🔹 Déconnexion
+  //  Déconnexion
   logout(): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
       tap(() => this.setAuthenticatedState(false, null)),
@@ -78,9 +75,9 @@ export class AuthService {
   // 🔹 Changement de mot de passe
   changePassword(oldPassword: string, newPassword: string): Observable<any> {
     const payload = {
-      current_password: oldPassword,      // ✅ conforme à Flask
+      current_password: oldPassword,
       new_password: newPassword,
-      confirm_password: newPassword       // ✅ Flask attend aussi confirm_password
+      confirm_password: newPassword
     };
 
     return this.http.post<any>(`${this.apiUrl}/change-password`, payload, { withCredentials: true }).pipe(
@@ -91,7 +88,7 @@ export class AuthService {
     );
   }
 
-  // 🔹 Enregistrement d'un nouvel utilisateur
+  //  Enregistrement d'un nouvel utilisateur
   register(email: string, password: string): Observable<any> {
     const payload = { username: email, password: password };
     return this.http.post<any>(`${this.apiUrl}/register`, payload).pipe(
@@ -102,7 +99,7 @@ export class AuthService {
     );
   }
 
-  // 🔹 Réinitialisation du mot de passe oublié
+  //  Réinitialisation du mot de passe oublié
   resetPassword(email: string, newPassword: string): Observable<any> {
     const payload = { email: email, new_password: newPassword };
     return this.http.post<any>(`${this.apiUrl}/reset-password`, payload).pipe(
@@ -113,7 +110,7 @@ export class AuthService {
     );
   }
 
-  // 🔹 Vérifie si l'utilisateur est connecté via OAuth
+  //  Vérifie si l'utilisateur est connecté via OAuth
   checkOAuthUser(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/check-oauth-user`, { withCredentials: true }).pipe(
       catchError(error => {

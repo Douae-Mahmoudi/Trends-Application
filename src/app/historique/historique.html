@@ -13,7 +13,7 @@
         type="text"
         [(ngModel)]="searchTerm"
         class="search-bar"
-        placeholder="🔍 Rechercher dans l’historique..."
+        placeholder=" Rechercher dans l’historique..."
       />
     </div>
 
@@ -35,11 +35,11 @@
             }"
           >
             <ng-container [ngSwitch]="item.source">
-              <span *ngSwitchCase="'github'">🐙 GitHub</span>
-              <span *ngSwitchCase="'reddit'">👽 Reddit</span>
-              <span *ngSwitchCase="'news'">📰 Actualités</span>
-              <span *ngSwitchCase="'football'">⚽ Football</span>
-              <span *ngSwitchDefault>🌐 Autre</span>
+              <span *ngSwitchCase="'github'"> GitHub</span>
+              <span *ngSwitchCase="'reddit'"> Reddit</span>
+              <span *ngSwitchCase="'news'">Actualités</span>
+              <span *ngSwitchCase="'football'"> Football</span>
+              <span *ngSwitchDefault> Autre</span>
             </ng-container>
           </span>
         </div>

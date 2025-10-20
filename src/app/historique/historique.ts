@@ -17,29 +17,29 @@ export class Historique implements OnInit {
   items: HistoriqueItem[] = [];
   loading = true;
   errorMessage = '';
-  debugInfo = ''; // 🔹 Nouveau pour afficher ce qu’on reçoit
+  debugInfo = '';
 
   constructor(private historiqueService: HistoriqueService) {}
 
   ngOnInit(): void {
-    console.log('🟢 HistoriqueComponent initialisé');
+    console.log('HistoriqueComponent initialisé');
     this.loadHistory();
   }
 
-  /** 🔹 Charger l’historique depuis le backend Flask */
+  /**  Charger l’historique depuis le backend Flask */
   loadHistory(): void {
     this.loading = true;
     this.errorMessage = '';
     this.debugInfo = '';
 
-    console.log('📡 Appel à getHistory()...');
+    console.log(' Appel à getHistory()...');
 
     this.historiqueService.getHistory().subscribe({
       next: (data) => {
-        console.log('✅ Réponse reçue depuis Flask :', data);
+        console.log(' Réponse reçue depuis Flask :', data);
 
         if (!data || data.length === 0) {
-          console.warn('⚠️ Données vides ou non trouvées.');
+          console.warn(' Données vides ou non trouvées.');
           this.debugInfo = 'Réponse vide du backend.';
         }
 
@@ -47,18 +47,18 @@ export class Historique implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('❌ Erreur lors du chargement de l’historique:', err);
+        console.error(' Erreur lors du chargement de l’historique:', err);
         this.errorMessage = err.error?.message || 'Impossible de charger l’historique.';
         this.loading = false;
         this.debugInfo = `Erreur HTTP ${err.status}: ${this.errorMessage}`;
       },
       complete: () => {
-        console.log('📭 Fin de la requête vers Flask.');
+        console.log(' Fin de la requête vers Flask.');
       }
     });
   }
 
-  /** 🔹 Filtrage local des éléments */
+  /**  Filtrage local des éléments */
   get filteredItems(): HistoriqueItem[] {
     if (!this.searchTerm.trim()) return this.items;
     return this.items.filter(i =>
@@ -68,18 +68,18 @@ export class Historique implements OnInit {
 
   /** 🔹 Supprimer un élément spécifique */
   deleteItem(id: number): void {
-    console.log('🗑️ Suppression de l’élément ID:', id);
+    console.log(' Suppression de l’élément ID:', id);
     this.historiqueService.deleteItem(id).subscribe({
       next: (res) => {
-        console.log('✅ Résultat suppression:', res);
+        console.log(' Résultat suppression:', res);
         if (res.success) {
           this.items = this.items.filter(item => item.id !== id);
         } else {
-          console.warn('⚠️ Échec suppression:', res);
+          console.warn(' Échec suppression:', res);
         }
       },
       error: (err) => {
-        console.error('❌ Erreur de suppression:', err);
+        console.error(' Erreur de suppression:', err);
         this.errorMessage = err.error?.message || 'Erreur lors de la suppression.';
       }
     });
@@ -89,16 +89,16 @@ export class Historique implements OnInit {
   clearHistory(): void {
     if (!confirm('Voulez-vous vraiment effacer tout l’historique ?')) return;
 
-    console.log('🧹 Nettoyage complet de l’historique...');
+    console.log(' Nettoyage complet de l’historique...');
     this.historiqueService.clearHistory().subscribe({
       next: (res) => {
-        console.log('✅ Réponse du backend pour clearHistory:', res);
+        console.log(' Réponse du backend pour clearHistory:', res);
         if (res.success) {
           this.items = [];
         }
       },
       error: (err) => {
-        console.error('❌ Erreur lors du nettoyage:', err);
+        console.error(' Erreur lors du nettoyage:', err);
         this.errorMessage = err.error?.message || 'Erreur lors de la suppression de l’historique.';
       }
     });

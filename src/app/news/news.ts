@@ -14,15 +14,14 @@ interface NewsArticle {
   category: string;
   source: string;
   title: string;
-  url: string; // Utilisé comme identifiant unique
+  url: string;
   isFavorite: boolean;
-  favoriteId: number | null; // 👈 ID du favori dans la base de données (pour suppression)
+  favoriteId: number | null;
 }
 
 @Component({
   selector: 'app-news',
   standalone: true,
-  // 👈 Ajout de HttpClientModule aux imports
   imports: [CommonModule, FormsModule, Sidebar, HttpClientModule],
   templateUrl: './news.html',
   styleUrls: ['./news.css']
@@ -33,26 +32,23 @@ export class News implements OnInit {
   searchTerm: string = '';
   showModal: boolean = false;
   selectedArticle: NewsArticle | null = null;
-  private currentFavorites: FavoriteItem[] = []; // Cache local des favoris du backend
+  private currentFavorites: FavoriteItem[] = [];
 
-  // 💡 NOUVEAU : Propriété pour l'état de chargement
   isLoading: boolean = true;
 
   constructor(
     private favoriteService: FavoriteService,
-    // 💡 NOUVEAU : Injection des services d'authentification et d'historique
     private historiqueService: HistoriqueService,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // 1. Charger les favoris actuels avant de charger les articles
     this.loadCurrentFavorites().then(() => {
       this.fetchArticles();
     });
   }
 
-  // 1. Chargement asynchrone des favoris depuis le backend
+  //  Chargement asynchrone des favoris depuis le backend
   async loadCurrentFavorites(): Promise<void> {
     return new Promise((resolve) => {
       this.favoriteService.getFavorites().subscribe({
@@ -68,9 +64,8 @@ export class News implements OnInit {
     });
   }
 
-  // 2. Vérification de l'état "Favori" pour un article
+  //  Vérification de l'état "Favori" pour un article
   private checkIfFavorite(article: any): { isFavorite: boolean, favoriteId: number | null } {
-    // On utilise l'URL, qui est le champ 'url' dans la table 'favorites' du backend
     const favorite = this.currentFavorites.find(fav => fav.url === article.url);
 
     return {
@@ -79,9 +74,9 @@ export class News implements OnInit {
     };
   }
 
-  // 🔥 Récupération des articles et initialisation de l'état "Favori"
+  //  Récupération des articles et initialisation de l'état "Favori"
   fetchArticles(): void {
-    this.isLoading = true; // 💡 Début du chargement
+    this.isLoading = true; //  Début du chargement
     fetch('http://127.0.0.1:5000/api/news')
       .then(res => res.json())
       .then((data: any) => {
@@ -95,16 +90,15 @@ export class News implements OnInit {
           source: article.source || "Unknown",
           title: article.title,
           url: article.url,
-          // 👈 Utiliser la fonction de vérification
           ...this.checkIfFavorite(article)
         }));
 
         this.filteredArticles = this.allArticles;
-        this.isLoading = false; // 💡 Fin du chargement
+        this.isLoading = false; //  Fin du chargement
       })
       .catch(err => {
         console.error("Erreur lors du chargement des articles:", err);
-        this.isLoading = false; // 💡 Fin du chargement même en cas d'erreur
+        this.isLoading = false; //  Fin du chargement même en cas d'erreur
       });
   }
 
@@ -125,16 +119,13 @@ export class News implements OnInit {
     this.selectedArticle = article;
     this.showModal = true;
 
-    // 💡 NOUVEAU : Enregistrement dans l'historique
     if (this.authService.isLoggedIn()) {
-      // ✅ CORRECTION TEMPORAIRE : On utilise 'as any' pour bypasser l'erreur de typage
-      // en attendant que 'news' soit ajouté à l'union de types SourceType dans HistoriqueService.
       const source: any = 'news';
       this.historiqueService.trackVisit(
         article.title,
         article.url,
-        source, // Source
-        article.category // Catégorie
+        source,
+        article.category
       );
     }
   }
@@ -144,7 +135,7 @@ export class News implements OnInit {
     this.selectedArticle = null;
   }
 
-  // ⭐ Logique de favori mise à jour (asynchrone)
+  //  Logique de favori mise à jour (asynchrone)
   toggleFavorite(article: NewsArticle): void {
     article.isFavorite = !article.isFavorite; // Mise à jour optimiste
 
@@ -174,7 +165,6 @@ export class News implements OnInit {
 
       this.favoriteService.addFavorite(title, url, category, source).subscribe({
         next: (response) => {
-          // L'ajout a réussi, on recharge les favoris pour récupérer l'ID généré
           this.loadCurrentFavorites().then(() => {
             // Mettre à jour l'état de l'article pour obtenir le nouvel ID
             const updatedState = this.checkIfFavorite(article);

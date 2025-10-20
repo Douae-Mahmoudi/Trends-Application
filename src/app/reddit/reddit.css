@@ -2,7 +2,6 @@
   display: flex;
   min-height: 100vh;
 }
-
 .reddit-container {
   flex-grow: 1;
   padding: 40px;
@@ -112,7 +111,6 @@
   text-decoration: underline;
 }
 
-/* Nouveaux styles pour le bouton du coeur */
 .favorite-button {
   background: none;
   border: none;

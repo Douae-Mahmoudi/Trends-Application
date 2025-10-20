@@ -8,7 +8,10 @@
   padding: 20px;
   box-sizing: border-box;
 }
-
+.app-logo{
+  height: 120px;
+  width: 120px;
+}
 .auth-container {
   display: flex;
   justify-content: center;

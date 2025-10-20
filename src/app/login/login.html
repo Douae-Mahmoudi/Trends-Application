@@ -4,14 +4,12 @@
       <h1>Bienvenue à Trendify !</h1>
     </div>
 
-    <!-- Message Box for Feedback -->
     @if (message()) {
       <div class="message-box" [class.success]="isSuccess()" [class.error]="!isSuccess()">
         {{ message() }}
       </div>
     }
 
-    <!-- Section Connexion -->
     @if (isLoginMode()) {
       <form (ngSubmit)="onLogin()">
         <div class="form-group">

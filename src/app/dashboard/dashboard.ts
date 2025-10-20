@@ -6,13 +6,13 @@ import { Chart, registerables, ChartDataset } from 'chart.js';
 
 Chart.register(...registerables);
 
-// Les couleurs à utiliser pour chaque catégorie de graphique
+// Couleurs spécifiques pour les catégories
 const CHART_COLORS: { [key: string]: string } = {
-  'Technologie': 'rgba(75, 192, 192, 0.6)',
-  'Finance': 'rgba(255, 99, 132, 0.6)',
-  'Sport': 'rgba(54, 162, 235, 0.6)',
-  'Santé': 'rgba(255, 159, 64, 0.6)',
-  'Autre': 'rgba(153, 102, 255, 0.6)',
+  'technologie': 'rgba(174,196,211,0.9)',
+  'finance': 'rgba(9,79,79,0.9)',
+  'sport': 'rgba(19,55,197,0.9)',
+  'santé': 'rgba(11,217,123,0.9)',
+  'autre': 'rgb(79,217,205, 0.9)',
 };
 
 @Component({
@@ -23,7 +23,7 @@ const CHART_COLORS: { [key: string]: string } = {
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
-  @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('barChart') chartRef!: ElementRef<HTMLCanvasElement>;
   chartInstance: Chart | undefined;
 
   public data: ChartData | null = null;
@@ -34,7 +34,7 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private apiDataService: ApiDataService,
-    private cdr: ChangeDetectorRef // Injection du ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -42,7 +42,6 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Si les données sont déjà chargées lorsque la vue est initialisée, on rend le graphique
     if (this._chartData) {
       this.renderChart();
     }
@@ -60,127 +59,145 @@ export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
     this.apiDataService.getGlobalTrends().subscribe({
       next: (apiResponse) => {
-        console.log("1. Réponse API brute reçue:", apiResponse);
+        console.log("Réponse API brute reçue:", apiResponse);
 
         if (apiResponse && apiResponse.success && apiResponse.data) {
           this._chartData = this.transformDataForChart(apiResponse.data);
-          this.data = this._chartData; // Affecte 'data' pour rendre le *ngIf dans le HTML
+          this.data = this._chartData;
 
-          // CRUCIAL : Forcer Angular à détecter le changement (le *ngIf="data" passe à true)
           this.cdr.detectChanges();
 
-          console.log("2. Données transformées (ChartData):", this.data);
+          console.log(" Données transformées (ChartData):", this.data);
 
           if (this.data.labels.length > 0) {
-            // Après le forçage du changement de détection, le ViewChild devrait être prêt.
-            // On conserve le setTimeout(0) par mesure de sécurité ultime.
             setTimeout(() => {
-              if (this.barChartRef) {
+              if (this.chartRef) {
                 this.renderChart();
               } else {
-                console.error("3.1. Échec critique du rendu: Le @ViewChild('barChart') est toujours undefined après le ChangeDetectorRef et setTimeout. Vérifiez la structure HTML.");
+                console.error(" ViewChild non prêt pour le rendu du graphique.");
               }
             }, 0);
           } else {
-            this.error = 'Aucune donnée de tendance trouvée pour les 7 derniers jours.';
-            console.warn("2.1. Erreur de données: La liste des jours (labels) est vide.");
+            this.error = 'Aucune donnée trouvée pour la période sélectionnée.';
           }
         } else {
           this.error = 'Les données reçues sont invalides ou non réussies.';
-          console.error("2.2. Erreur de données: API response invalide ou success=false.");
         }
         this.isLoading = false;
       },
       error: (err) => {
-        this.error = 'Erreur lors du chargement des données des tendances globales.';
+        this.error = 'Erreur lors du chargement des tendances globales.';
         this.isLoading = false;
-        console.error('3. Erreur API (HTTP):', err);
+        console.error(' Erreur API (HTTP):', err);
       }
     });
   }
 
+  /**
+   * Calcule le total des consultations pour chaque catégorie sur toute la période.
+   */
   private transformDataForChart(results: TrendResult[]): ChartData {
-    // Logique de transformation inchangée
-    const allDates = [...new Set(results.map(item => item.date))].sort();
-    const allCategories = [...new Set(results.map(item => item.category))];
-
-    const categoryDataMap = new Map<string, { [date: string]: number }>();
-    allCategories.forEach(category => {
-      categoryDataMap.set(category, {});
-    });
+    const totalCountsByCategory = new Map<string, number>();
+    const allCategories = new Set<string>();
 
     results.forEach(item => {
+      const category = item.category.trim();
       const count = Number(item.count);
-      if (!isNaN(count)) {
-        categoryDataMap.get(item.category)![item.date] = count;
+
+      // Assurer que le compte est valide et positif
+      if (!isNaN(count) && count > 0) {
+        allCategories.add(category);
+        const currentTotal = totalCountsByCategory.get(category) || 0;
+        totalCountsByCategory.set(category, currentTotal + count);
       }
     });
 
-    const datasets: ChartDataset<'bar'>[] = [];
-    categoryDataMap.forEach((dataByDate, category) => {
-      const dataSet: number[] = allDates.map(date => dataByDate[date] || 0);
+    const categoriesArray = Array.from(allCategories);
+    const dataSet: number[] = [];
+    const backgroundColors: string[] = [];
 
-      datasets.push({
-        label: category,
-        data: dataSet,
-        backgroundColor: CHART_COLORS[category] || 'rgba(150, 150, 150, 0.6)',
-      });
+    categoriesArray.forEach(category => {
+      const count = totalCountsByCategory.get(category) || 0;
+      dataSet.push(count);
+
+      const colorKey = category.toLowerCase();
+      const backgroundColor = CHART_COLORS[colorKey] || this.getRandomBlueShade();
+      backgroundColors.push(backgroundColor);
     });
 
     return {
-      labels: allDates.map(date => this.formatDateLabel(date)),
-      datasets: datasets,
+      labels: categoriesArray,
+      datasets: [
+        {
+          label: 'Consultations totales',
+          data: dataSet,
+          backgroundColor: backgroundColors,
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          hoverOffset: 4,
+        } as ChartDataset<'pie'> as ChartDataset<'bar'>
+      ],
     };
   }
 
-  private formatDateLabel(dateString: string): string {
-    const parts = dateString.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}`;
-    }
-    return dateString;
+  private getRandomBlueShade(): string {
+    const blues = [
+      'rgba(54, 162, 235, 0.9)',
+      'rgba(30, 144, 255, 0.9)',
+      'rgba(70, 130, 180, 0.9)',
+      'rgba(100, 149, 237, 0.9)',
+      'rgba(65, 105, 225, 0.9)',
+      'rgba(123, 104, 238, 0.9)'
+    ];
+    return blues[Math.floor(Math.random() * blues.length)];
   }
 
+
   renderChart(): void {
-    if (!this.barChartRef || !this.data) {
-      return;
-    }
-    console.log("4. Canevas trouvé. Démarrage du rendu de Chart.js...");
+    if (!this.chartRef || !this.data) return;
 
-    if (this.chartInstance) {
-      this.chartInstance.destroy();
-    }
+    console.log(" Rendu du graphique en cours (type: pie)...");
 
-    const ctx = this.barChartRef.nativeElement.getContext('2d');
+    if (this.chartInstance) this.chartInstance.destroy();
+
+    const ctx = this.chartRef.nativeElement.getContext('2d');
     if (ctx) {
       this.chartInstance = new Chart(ctx, {
-        type: 'bar',
+        type: 'pie',
         data: {
           labels: this.data.labels,
-          datasets: this.data.datasets
+          datasets: this.data.datasets as ChartDataset<'pie'>[]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: {
-            x: {
-              stacked: true,
-              title: { display: true, text: 'Jour' }
-            },
-            y: {
-              beginAtZero: true,
-              stacked: true,
-              title: { display: true, text: 'Nombre de consultations' }
-            }
-          },
           plugins: {
             legend: {
               display: true,
-              position: 'top',
+              position: 'right',
+              labels: {
+                color: '#0F172A',
+              }
             },
             title: {
               display: true,
-              text: 'Tendances de consultation par catégorie (7 derniers jours)'
+              text: 'Distribution des consultations par catégorie (Total)',
+              color: '#1E40AF',
+              font: { size: 16, weight: 'bold' }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  const total = context.dataset.data.reduce((acc: any, value: any) => acc + value, 0);
+                  const value = context.parsed;
+                  const percentage = ((value / total) * 100).toFixed(1) + '%';
+                  return label + value + ' (' + percentage + ')';
+                }
+              }
             }
           }
         }

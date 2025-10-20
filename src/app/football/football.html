@@ -17,13 +17,18 @@
       </div>
 
       <div class="matches-list">
-        <div *ngIf="filteredMatches.length === 0" class="no-results">
-          loading...
-
+        <!-- Affiche "loading..." pendant le chargement initial et si aucun résultat après filtrage -->
+        <div *ngIf="isLoading" class="no-results">
+          Chargement des matchs...
         </div>
+        <div *ngIf="!isLoading && filteredMatches.length === 0" class="no-results">
+          Aucun match trouvé pour votre recherche.
+        </div>
+
         <div *ngFor="let match of filteredMatches" class="match-card">
           <div class="match-card-header">
             <h3 class="match-teams" (click)="openModal(match)">
+              <!-- AFFICHE TEAM 1 vs TEAM 2 -->
               {{ match.home_team }} vs {{ match.away_team }}
             </h3>
             <button class="favorite-button" (click)="toggleFavorite(match)">
@@ -33,7 +38,7 @@
           </div>
           <p class="match-competition">{{ match.competition }}</p>
           <span class="match-score">{{ match.score }}</span>
-          <span class="match-status status-{{ match.status.toLowerCase() }}">{{ match.status }}</span>
+          <span class="match-status status-{{ match.status.toLowerCase().replace('_', '-') }}">{{ match.status }}</span>
         </div>
       </div>
     </div>
@@ -42,12 +47,14 @@
   <div *ngIf="showModal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
+        <!-- Titre de la modal : Match Team 1 vs Team 2 -->
         <h2>{{ selectedMatch?.home_team }} vs {{ selectedMatch?.away_team }}</h2>
         <button class="close-button" (click)="closeModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p><strong>Équipe à domicile:</strong> {{ selectedMatch?.home_team }}</p>
-        <p><strong>Équipe à l'extérieur:</strong> {{ selectedMatch?.away_team }}</p>
+        <!-- Modification demandée : Affichage Équipe 1 et Équipe 2 -->
+        <p><strong>Équipe 1:</strong> {{ selectedMatch?.home_team }}</p>
+        <p><strong>Équipe 2:</strong> {{ selectedMatch?.away_team }}</p>
         <p><strong>Compétition:</strong> {{ selectedMatch?.competition }}</p>
         <p><strong>Score:</strong> {{ selectedMatch?.score }}</p>
         <p><strong>Statut:</strong> {{ selectedMatch?.status }}</p>

@@ -1,4 +1,3 @@
-
 .main-layout {
   display: flex;
   min-height: 100vh;
@@ -11,7 +10,6 @@
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
   margin-left: 100px;
-
 }
 
 .header .title {
@@ -138,7 +136,7 @@
 }
 
 /* Couleurs pour les statuts de match */
-.status-in_play {
+.status-in-play { /* Ajusté pour correspondre à .toLowerCase().replace('_', '-') */
   background-color: #27ae60;
   color: white;
 }

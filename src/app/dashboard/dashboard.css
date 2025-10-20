@@ -1,21 +1,17 @@
-/* ---------------------------------- */
-/* 1. Mise en page générale et Sidebar */
-/* ---------------------------------- */
 .main-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f4f7fa; /* Fond léger */
+  background-color: #f4f7fa;
   font-family: 'Inter', sans-serif;
 }
-
-/* Conteneur principal du tableau de bord (prend l'espace restant) */
 .dashboard-container {
   flex-grow: 1;
-  /* Ajustement de la marge gauche pour ne pas être masqué par la sidebar */
-  /* Assurez-vous que la largeur de votre sidebar est bien gérée par app-sidebar/CSS global */
-  margin-left: 250px; /* J'ajoute une marge pour simuler l'espace de la sidebar */
+  margin-left: 250px;
   padding: 2.5rem 2rem;
-  overflow-x: hidden; /* Prévient le défilement horizontal */
+  overflow-x: hidden;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .content-wrapper {
@@ -23,44 +19,33 @@
   margin: 0 auto;
 }
 
-/* ---------------------------------- */
-/* 2. Titre */
-/* ---------------------------------- */
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #2c3e50;
   margin-bottom: 2rem;
   padding-bottom: 0.5rem;
   border-bottom: 4px solid #007bff;
-  display: inline-block; /* Assure que la ligne s'arrête après le texte */
+  display: inline-block;
+  color: var(--text-color);
+
 }
 
-/* ---------------------------------- */
-/* 3. Carte du Graphique (Chart Card) */
-/* ---------------------------------- */
+/*  Carte du Graphique  */
 .chart-card {
   background: white;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-
-  /* FIX CRUCIAL : Définit la hauteur du conteneur pour que le canvas soit visible */
   position: relative;
-  /* Nouvelle hauteur réduite à 300px (était 400px) */
   height: 300px;
   min-height: 250px;
 }
 
-/* Le canvas doit prendre 100% de l'espace alloué par son parent (.chart-card) */
 canvas {
   width: 100% !important;
   height: 100% !important;
 }
 
-/* ---------------------------------- */
-/* 4. Messages d'état */
-/* ---------------------------------- */
 .loading-spinner, .error-message {
   text-align: center;
   padding: 5rem 2rem;
@@ -86,9 +71,6 @@ canvas {
   100% { opacity: 0.5; }
 }
 
-/* ---------------------------------- */
-/* 5. Réactivité */
-/* ---------------------------------- */
 @media (max-width: 992px) {
   .dashboard-container {
     /* Ajuster la marge pour les tablettes */
@@ -96,12 +78,11 @@ canvas {
     padding: 1.5rem;
   }
   .chart-card {
-    height: 250px; /* Réduit pour les tablettes */
+    height: 250px;
   }
 }
 
 @media (max-width: 768px) {
-  /* Supprimer la marge gauche sur mobile (la sidebar doit passer en haut ou être masquée) */
   .dashboard-container {
     margin-left: 0;
     padding: 1rem;
@@ -111,7 +92,7 @@ canvas {
     margin-bottom: 1rem;
   }
   .chart-card {
-    height: 200px; /* Réduit pour les mobiles */
+    height: 200px;
     padding: 1rem;
   }
 }

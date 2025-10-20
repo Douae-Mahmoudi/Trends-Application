@@ -1,26 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-// Importez ChartDataset de Chart.js pour une compatibilité stricte
 import { ChartDataset } from 'chart.js';
 
-// L'URL de votre backend Flask
+// L'URL de  backend Flask
 const API_URL = 'http://127.0.0.1:5000/api';
 
-// Interface pour les données brutes reçues du backend Flask (INCHANGÉE)
+// Interface pour les données brutes reçues du backend Flask
 export interface TrendResult {
   date: string;
   category: string;
   count: number;
 }
 
-/**
- * Interface pour le format Chart.js attendu.
- * Utilisez ChartDataset<'bar'> pour assurer la compatibilité avec le type Chart.js.
- */
+
 export interface ChartData {
   labels: string[]; // Les jours
-  datasets: ChartDataset<'bar'>[]; // Le type ChartDataset gère la propriété 'label: string | undefined'
+  datasets: ChartDataset<'bar'>[];
 }
 
 @Injectable({

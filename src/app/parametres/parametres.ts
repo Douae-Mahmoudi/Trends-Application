@@ -30,7 +30,7 @@ export class Parametres implements OnInit {
     this.isDarkMode = this.themeService.isDarkMode();
   }
 
-  // 🧩 Changement de mot de passe avec confirmation
+  //  Changement de mot de passe avec confirmation
   onChangePassword(): void {
     if (!this.oldPassword || !this.newPassword || !this.confirmPassword) {
       this.passwordChangeMessage = 'Veuillez remplir tous les champs.';
@@ -45,28 +45,28 @@ export class Parametres implements OnInit {
     this.authService.changePassword(this.oldPassword, this.newPassword).subscribe({
       next: (response) => {
         if (response.success) {
-          this.passwordChangeMessage = '✅ Mot de passe changé avec succès.';
+          this.passwordChangeMessage = ' Mot de passe changé avec succès.';
           this.oldPassword = '';
           this.newPassword = '';
           this.confirmPassword = '';
         } else {
-          this.passwordChangeMessage = `❌ Erreur : ${response.message || 'Ancien mot de passe incorrect.'}`;
+          this.passwordChangeMessage = ` Erreur : ${response.message || 'Ancien mot de passe incorrect.'}`;
         }
       },
       error: (err) => {
         console.error(err);
-        this.passwordChangeMessage = '❌ Erreur lors du changement de mot de passe.';
+        this.passwordChangeMessage = ' Erreur lors du changement de mot de passe.';
       }
     });
   }
 
-  // 🎨 Bascule le thème (sombre/clair)
+  //  Bascule le thème (sombre/clair)
   toggleTheme(): void {
     this.themeService.toggleTheme();
     this.isDarkMode = this.themeService.isDarkMode();
   }
 
-  // 🚪 Déconnexion
+  //  Déconnexion
   logout(): void {
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/login']),

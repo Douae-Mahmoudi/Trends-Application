@@ -15,12 +15,12 @@ export interface HistoriqueItem {
 
 @Injectable({ providedIn: 'root' })
 class HistoriqueService {
-  /** 🔹 URL de ton backend Flask */
+  /**  URL de ton backend Flask */
   private apiUrl = 'http://127.0.0.1:5000/api/history';
 
   constructor(private http: HttpClient) {}
 
-  /** 🔹 Récupérer tout l’historique */
+  /**  Récupérer tout l’historique */
   getHistory(): Observable<HistoriqueItem[]> {
     return this.http
       .get<{ success: boolean; data: HistoriqueItem[] }>(this.apiUrl, {
@@ -34,13 +34,13 @@ class HistoriqueService {
           return [];
         }),
         catchError(error => {
-          console.error('❌ Erreur lors de la récupération de l’historique', error);
+          console.error(' Erreur lors de la récupération de l’historique', error);
           return of([]);
         })
       );
   }
 
-  /** 🔹 Ajouter un élément à l’historique */
+  /** Ajouter un élément à l’historique */
   addToHistory(item: HistoriqueItem): Observable<{ success: boolean; message?: string }> {
     return this.http.post<{ success: boolean; message?: string }>(
       this.apiUrl,
@@ -48,39 +48,39 @@ class HistoriqueService {
       { withCredentials: true }
     ).pipe(
       catchError(error => {
-        console.error('❌ Erreur lors de l’ajout à l’historique', error);
+        console.error(' Erreur lors de l’ajout à l’historique', error);
         return of({ success: false, message: 'Erreur réseau ou serveur' });
       })
     );
   }
 
-  /** 🔹 Supprimer un élément spécifique */
+  /**  Supprimer un élément spécifique */
   deleteItem(id: number): Observable<{ success: boolean; message?: string }> {
     return this.http.delete<{ success: boolean; message?: string }>(
       `${this.apiUrl}/${id}`,
       { withCredentials: true }
     ).pipe(
       catchError(error => {
-        console.error('❌ Erreur lors de la suppression d’un élément', error);
+        console.error(' Erreur lors de la suppression d’un élément', error);
         return of({ success: false, message: 'Erreur réseau ou serveur' });
       })
     );
   }
 
-  /** 🔹 Effacer tout l’historique */
+  /** Effacer tout l’historique */
   clearHistory(): Observable<{ success: boolean; message?: string }> {
     return this.http.delete<{ success: boolean; message?: string }>(
       this.apiUrl,
       { withCredentials: true }
     ).pipe(
       catchError(error => {
-        console.error('❌ Erreur lors de l’effacement de l’historique', error);
+        console.error(' Erreur lors de l’effacement de l’historique', error);
         return of({ success: false, message: 'Erreur réseau ou serveur' });
       })
     );
   }
 
-  /** 🔹 Enregistrer automatiquement une visite */
+  /**  Enregistrer automatiquement une visite */
   trackVisit(title: string, url: string, source: 'github' | 'reddit' | 'news' | 'football'|'youtube', category?: string): void {
     const item: HistoriqueItem = {
       title,
@@ -91,9 +91,9 @@ class HistoriqueService {
 
     this.addToHistory(item).subscribe(response => {
       if (response.success) {
-        console.log('✅ Visite enregistrée dans l’historique');
+        console.log(' Visite enregistrée dans l’historique');
       } else {
-        console.warn('⚠️ Échec de l’enregistrement de la visite');
+        console.warn(' Échec de l’enregistrement de la visite');
       }
     });
   }

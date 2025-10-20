@@ -1,28 +1,34 @@
-/* Styles généraux pour le conteneur principal */
 .historique-container {
   flex-grow: 1;
   padding: 30px 40px;
   margin-left: 250px; /* Espace pour la sidebar */
-  background-color: #f8f9fa;
   min-height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .header {
   margin-bottom: 30px;
   padding-bottom: 10px;
   border-bottom: 3px solid #e9ecef;
+  text-align: center;
+
 }
 
 .header h2 {
   font-size: 2.5em;
-  color: #343a40;
+  color: var(--text-color);
   font-weight: 700;
 }
 
-/* --- Barre de recherche --- */
-
 .search-container {
+  display: flex;
+  justify-content: center;
   margin-bottom: 30px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .search-bar {
@@ -40,8 +46,7 @@
   outline: none;
 }
 
-/* --- Liste et éléments de l'historique --- */
-
+/*  Liste et éléments de l'historique  */
 .historique-list {
   display: flex;
   flex-direction: column;
@@ -132,8 +137,6 @@
   background-color: #007bff;
   color: #ffffff;
 }
-
-/* --- États d'absence de données --- */
 
 .loading,
 .no-results {

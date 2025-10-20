@@ -4,7 +4,6 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
-// Définition de l'interface pour un élément favori
 export interface FavoriteItem {
   id: number;
   title: string;
@@ -24,7 +23,7 @@ interface FavoritesResponse {
 interface OperationResponse {
   success: boolean;
   message: string;
-  id?: number; // ID du favori créé (utile pour ajouter côté client)
+  id?: number;
 }
 
 @Injectable({
@@ -35,7 +34,6 @@ export class FavoriteService {
   private readonly baseApiUrl = 'http://127.0.0.1:5000/api';
   private readonly favoritesUrl = `${this.baseApiUrl}/favorites`;
 
-  // Options pour inclure le cookie de session
   private readonly httpOptions = {
     withCredentials: true
   };

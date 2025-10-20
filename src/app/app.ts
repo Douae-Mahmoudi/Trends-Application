@@ -10,7 +10,7 @@ import { NgChartsModule } from 'ng2-charts';
   standalone: true,
   imports: [
     RouterOutlet,
-    NgChartsModule, // <-- This is the corrected import
+    NgChartsModule,
 
   ],
   providers: [ApiDataService],
@@ -18,5 +18,5 @@ import { NgChartsModule } from 'ng2-charts';
   styleUrls: ['./app.css']
 })
 export class App {
-  // ...
+
 }

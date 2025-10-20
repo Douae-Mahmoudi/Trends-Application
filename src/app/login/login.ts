@@ -60,7 +60,7 @@ export class Login {
     throw new Error('Fetch failed after retries');
   }
 
-  // 🔑 LOGIN
+  //  LOGIN
   async onLogin() {
     this.message.set('');
 
@@ -76,7 +76,7 @@ export class Login {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include'           // ✅ pour envoyer/recevoir le cookie de session
+        credentials: 'include'           //  pour envoyer/recevoir le cookie de session
       });
 
       const data = await response.json();
@@ -85,7 +85,7 @@ export class Login {
         this.setStatusMessage('Connexion réussie ! Redirection...', true);
         console.log('Utilisateur connecté :', this.loginForm.email);
 
-        await this.router.navigate(['/sidebar']);
+        await this.router.navigate(['/dashboard']);
       } else {
         this.setStatusMessage(data.message || 'Échec de la connexion.', false);
       }
@@ -98,7 +98,7 @@ export class Login {
     }
   }
 
-  // 🔑 REGISTER
+  //  REGISTER
   async onRegister() {
     this.message.set('');
 
@@ -119,7 +119,7 @@ export class Login {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include'           // ✅ utile si le backend définit un cookie
+        credentials: 'include'           //  utile si le backend définit un cookie
       });
 
       const data = await response.json();
@@ -136,7 +136,7 @@ export class Login {
     }
   }
 
-  // 🔗 Login via Google
+  //  Login via Google
   onGoogleLogin() {
     window.location.href = `${this.FLASK_AUTH_BASE_URL}/google_login/login`;
   }
@@ -145,7 +145,7 @@ export class Login {
     this.onGoogleLogin();
   }
 
-  // 🔗 Login via GitHub
+  //  Login via GitHub
   onGithubLogin() {
     window.location.href = `${this.FLASK_AUTH_BASE_URL}/github_login/login`;
   }

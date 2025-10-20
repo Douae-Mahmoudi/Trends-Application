@@ -7,7 +7,6 @@
   --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-
 .page-container {
   display: flex;
   flex-direction: column;
@@ -19,7 +18,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* Réduction de la largeur en diminuant le padding horizontal (le second chiffre) */
   padding: 1rem 1.5rem;
   background-color: var(--header-bg-color);
   box-shadow: var(--box-shadow);
@@ -30,7 +28,6 @@
   width: 90px;
 }
 
-/* Styles du bouton de base, pas de changement ici */
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -41,7 +38,7 @@
 }
 
 
-/* --- Section principale (Hero) --- */
+/*  Section principale */
 .hero-section {
   flex: 1;
   display: flex;
@@ -70,10 +67,8 @@
   margin-bottom: 2rem;
 }
 
-/* --- Pied de page --- */
 .app-footer {
   text-align: center;
-  /* Diminution drastique du padding vertical */
   padding: 0.1rem 1.5rem;
   background-color: #343a40;
   color: #fff;

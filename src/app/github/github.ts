@@ -1,17 +1,11 @@
-// src/app/github/github.ts
-
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Sidebar } from '../sidebar/sidebar';
 import { Modal } from '../modal/modal';
 import { FavoriteService, FavoriteItem } from '../services/favorite.service';
-
-// NOUVEL IMPORT POUR L'HISTORIQUE
 import HistoriqueService from '../services/historique.service';
-
 import { HttpClientModule } from '@angular/common/http';
-// NOUVEAUX IMPORTS POUR L'AUTHENTIFICATION
 import { AuthService } from '../services/auth.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -32,7 +26,6 @@ interface TrendingTopic {
 @Component({
   selector: 'app-github',
   standalone: true,
-  // Ajoutez HttpClientModule aux imports
   imports: [CommonModule, FormsModule, Sidebar, Modal, HttpClientModule],
   templateUrl: './github.html',
   styleUrls: ['./github.css']
@@ -47,7 +40,7 @@ export class Github implements OnInit, OnDestroy {
 
   isLoading: boolean = true;
 
-  private authSubscription!: Subscription; // Abonnement pour le nettoyage
+  private authSubscription!: Subscription;
 
   constructor(
     private favoriteService: FavoriteService,
@@ -56,10 +49,10 @@ export class Github implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // 1. Charger les tendances GitHub immédiatement
+    //  Charger les tendances GitHub immédiatement
     this.fetchGithubTrends();
 
-    // 2. S'abonner à l'état d'authentification pour charger les favoris
+    // S'abonner à l'état d'authentification pour charger les favoris
     this.authSubscription = this.authService.isAuthenticated$
       .pipe(
         // N'exécuter que si l'utilisateur est TRUE (connecté)
@@ -79,7 +72,7 @@ export class Github implements OnInit, OnDestroy {
     }
   }
 
-  // 1. Chargement asynchrone des favoris depuis le backend
+  //  Chargement asynchrone des favoris depuis le backend
   loadCurrentFavorites(): Promise<void> {
     return new Promise((resolve) => {
       this.favoriteService.getFavorites().subscribe({
@@ -91,14 +84,12 @@ export class Github implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error("Erreur de chargement des favoris:", err);
-          // L'erreur est gérée, mais on continue
           resolve();
         }
       });
     });
   }
 
-  // Nouvelle fonction pour mettre à jour l'état visuel des tendances
   private syncFavoritesWithTopics(): void {
     this.allTopics = this.allTopics.map(topic => {
       const { isFavorite, favoriteId } = this.checkIfFavorite(topic);
@@ -108,10 +99,10 @@ export class Github implements OnInit, OnDestroy {
         favoriteId: favoriteId
       };
     });
-    this.filterTopics(); // Rafraîchir l'affichage
+    this.filterTopics();
   }
 
-  // 2. Vérification de l'état "Favori" pour chaque tendance
+  //  Vérification de l'état "Favori" pour chaque tendance
   private checkIfFavorite(topic: any): { isFavorite: boolean, favoriteId: number | null } {
     const favorite = this.currentFavorites.find(fav => fav.title === topic.full_name);
 
@@ -121,7 +112,7 @@ export class Github implements OnInit, OnDestroy {
     };
   }
 
-  // 🔥 Récupère les tendances GitHub depuis le backend Flask
+  //  Récupère les tendances GitHub depuis le backend Flask
   fetchGithubTrends(): void {
     fetch('http://127.0.0.1:5000/api/github')
       .then(response => response.json())
@@ -140,17 +131,14 @@ export class Github implements OnInit, OnDestroy {
         }));
         this.filteredTopics = this.allTopics;
 
-        // 💡 CORRIGÉ : Fin du chargement après la récupération des données
         this.isLoading = false;
 
-        // Si l'utilisateur est déjà connecté au chargement de la page, on charge les favoris
         if (this.authService.isLoggedIn()) {
           this.loadCurrentFavorites();
         }
       })
       .catch(error => {
         console.error('Erreur lors du chargement des tendances GitHub:', error);
-        // 💡 CORRIGÉ : Fin du chargement, même en cas d'erreur
         this.isLoading = false;
       });
   }
@@ -172,13 +160,12 @@ export class Github implements OnInit, OnDestroy {
     this.selectedTopic = topic;
     this.showModal = true;
 
-    // 💡 AJOUTÉ : Enregistre la visite si l'utilisateur est connecté
     if (this.authService.isLoggedIn()) {
       this.historiqueService.trackVisit(
-        topic.full_name, // title
-        topic.url,        // url
-        'github',         // source
-        topic.category    // category (optionnel)
+        topic.full_name,
+        topic.url,
+        'github',
+        topic.category
       );
     }
   }
@@ -188,18 +175,14 @@ export class Github implements OnInit, OnDestroy {
     this.selectedTopic = null;
   }
 
-  // ⭐ Logique de favori mise à jour (asynchrone)
   toggleFavorite(topic: TrendingTopic): void {
-    // ... (Logique de favori inchangée)
-    topic.isFavorite = !topic.isFavorite; // Mise à jour optimiste
+    topic.isFavorite = !topic.isFavorite;
 
     if (!topic.isFavorite) {
-      // Suppression du favori
       if (topic.favoriteId !== null) {
         this.favoriteService.removeFavorite(topic.favoriteId).subscribe({
           next: () => {
-            topic.favoriteId = null; // Supprime l'ID local
-            // Retirer de la liste de cache locale pour la synchro
+            topic.favoriteId = null;
             this.currentFavorites = this.currentFavorites.filter(fav => fav.id !== topic.favoriteId);
           },
           error: (err) => {
@@ -213,16 +196,14 @@ export class Github implements OnInit, OnDestroy {
       }
 
     } else {
-      // Ajout du favori
       const title = topic.full_name;
       const url = topic.url;
-      const category = 'github'; // Définir la catégorie/source
+      const category = 'github';
       const source = 'github';
 
       this.favoriteService.addFavorite(title, url, category, source).subscribe({
         next: (response) => {
-          // L'ajout a réussi, il faut maintenant récupérer l'ID généré par la BDD
-          this.loadCurrentFavorites(); // Recharger pour obtenir le nouvel ID
+          this.loadCurrentFavorites();
         },
         error: (err) => {
           console.error('Erreur d\'ajout:', err);

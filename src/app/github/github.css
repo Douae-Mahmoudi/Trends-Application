@@ -149,3 +149,13 @@
 .favorite-button:hover {
   transform: scale(1.2);
 }
+.loading-state{
+
+    text-align: center;
+    font-size: 18px;
+    color: #7f8c8d;
+    margin-top: 50px;
+    width: 100%;
+    grid-column: 1 / -1;
+
+}
